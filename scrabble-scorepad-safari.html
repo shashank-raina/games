@@ -135,17 +135,27 @@
 
   .player.current .turnmark { background: var(--gold); }
 
+  .player .stack { flex: 1; min-width: 0; }
+
   .player input.name {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
     background: transparent;
     border: none;
     color: var(--cream);
     font-family: 'Karla', sans-serif;
     font-size: 16px;
     font-weight: 500;
-    padding: 4px 2px;
+    padding: 2px 2px;
     border-radius: 4px;
+  }
+
+  .player .meta {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #7FA396;
+    padding-left: 3px;
   }
 
   .player input.name:focus { outline: 2px solid var(--gold); background: #00000030; }
@@ -289,6 +299,35 @@
 
   .hint { margin: 0 0 14px; font-size: 12px; color: #8FB2A5; }
 
+  .dict {
+    margin: 10px 2px 0;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+    min-height: 18px;
+    color: #8FB2A5;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .dict::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #8FB2A5;
+    flex: none;
+  }
+
+  .dict[hidden] { display: none; }
+  .dict[data-state="checking"] { color: #8FB2A5; }
+  .dict[data-state="valid"] { color: #8FD6A8; }
+  .dict[data-state="valid"]::before { background: #8FD6A8; }
+  .dict[data-state="unknown"] { color: var(--dw); }
+  .dict[data-state="unknown"]::before { background: var(--dw); }
+  .dict[data-state="offline"] { color: #C2A56B; }
+  .dict[data-state="offline"]::before { background: #C2A56B; }
+
   .mults { display: flex; gap: 6px; flex-wrap: wrap; }
 
   .mults button {
@@ -362,7 +401,27 @@
     font-weight: 500;
   }
 
-  #log { list-style: none; margin: 0 0 12px; padding: 0; }
+  #log {
+    list-style: none;
+    margin: 0 0 12px;
+    padding: 0;
+    max-height: 320px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #log .kill {
+    background: none;
+    border: none;
+    color: #7FA396;
+    font-size: 17px;
+    line-height: 1;
+    padding: 4px 2px 4px 8px;
+    cursor: pointer;
+    flex: none;
+  }
+
+  #log .kill:hover { color: var(--tw); }
 
   #log li {
     display: flex;
@@ -394,6 +453,71 @@
   }
 
   #undo:disabled { opacity: 0.35; cursor: default; }
+
+  .rules {
+    margin-top: 26px;
+    background: var(--felt);
+    border: 1px solid var(--felt-line);
+    border-radius: 12px;
+    padding: 2px 16px;
+  }
+
+  .rules summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 0;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #8FB2A5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .rules summary::-webkit-details-marker { display: none; }
+  .rules summary::after { content: '+'; font-size: 18px; color: var(--gold); }
+  .rules[open] summary::after { content: '–'; }
+
+  .rules ol { margin: 0 0 16px; padding: 0; list-style: none; counter-reset: rule; }
+
+  .rules li {
+    counter-increment: rule;
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #ffffff12;
+  }
+
+  .rules li::before {
+    content: counter(rule);
+    grid-row: span 2;
+    font-family: 'Bitter', Georgia, serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: var(--ink);
+    background: var(--tile);
+    border-radius: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 0 var(--tile-edge);
+  }
+
+  .rules h3 {
+    margin: 4px 0 4px;
+    font-family: 'Karla', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+
+  .rules p { margin: 0; font-size: 13.5px; line-height: 1.5; color: #A9C6BA; grid-column: 2; }
+
+  .rules .lore { margin-top: 6px; color: #7FA396; font-size: 12.5px; font-style: italic; }
 
   button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
@@ -427,12 +551,13 @@
     <div id="wordPane">
       <input id="wordInput" type="text" autocomplete="off" autocapitalize="characters"
              spellcheck="false" placeholder="Type the word played">
+      <p id="dictStatus" class="dict" role="status" aria-live="polite" hidden></p>
       <div class="rack"><div id="tiles" class="tiles"></div></div>
-      <p class="hint">Tap a tile to mark it: double letter, triple letter, blank.</p>
+      <p class="hint">Tap a tile to mark it: double letter, triple letter, blank. Word check uses a general English dictionary, not the official Scrabble list.</p>
       <div class="mults">
         <button type="button" data-w="2">Double word</button>
         <button type="button" data-w="3">Triple word</button>
-        <button type="button" id="bingo">Bingo +50</button>
+        <button type="button" id="bingo">Used all 7 +50</button>
       </div>
     </div>
 
@@ -454,6 +579,24 @@
     <button id="undo" type="button">Undo last turn</button>
   </section>
 
+  <details class="rules">
+    <summary>Settle an argument</summary>
+    <ol>
+      <li>
+        <h3>Premium squares count once</h3>
+        <p>A double or triple square scores only on the turn its tile is laid. Later words running through that tile take it at face value.</p>
+      </li>
+      <li>
+        <h3>The centre star doubles the first word</h3>
+        <p>The star is a double-word square, so the opening play is always worth twice its letters.</p>
+      </li>
+      <li>
+        <h3>A new tile scores in every word it makes</h3>
+        <p>Lay one tile alongside an existing word and you score each new word formed. The tile counts in all of them, and a premium underneath it applies to each — a double-word square doubles both words through it.</p>
+      </li>
+    </ol>
+  </details>
+
 </div>
 
 <script>
@@ -471,7 +614,7 @@
     log: []
   };
 
-  var pad = { mode:'word', word:'', marks:[], dw:false, tw:false, bingo:false, number:'' };
+  var pad = { mode:'word', word:'', marks:[], dw:0, tw:0, bingo:false, number:'' };
 
   var el = {
     players: document.getElementById('players'),
@@ -549,7 +692,7 @@
       var m = pad.marks[i] || {mult:1, blank:false};
       base += (m.blank ? 0 : (VALUES[c] || 0)) * m.mult;
     });
-    var wm = (pad.dw ? 2 : 1) * (pad.tw ? 3 : 1);
+    var wm = Math.pow(2, pad.dw) * Math.pow(3, pad.tw);
     return base * wm + (pad.bingo ? 50 : 0);
   }
 
@@ -575,6 +718,9 @@
       var mark = document.createElement('span');
       mark.className = 'turnmark';
 
+      var stack = document.createElement('div');
+      stack.className = 'stack';
+
       var name = document.createElement('input');
       name.className = 'name';
       name.value = p.name;
@@ -585,12 +731,21 @@
         save();
       });
 
+      var turns = state.log.filter(function (entry) { return entry.player === i; }).length;
+      var meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.textContent = turns === 0 ? 'no turns yet'
+        : turns + (turns === 1 ? ' turn' : ' turns') + ' · ' + Math.round(p.score / turns) + ' avg';
+
+      stack.appendChild(name);
+      stack.appendChild(meta);
+
       var total = document.createElement('span');
       total.className = 'total';
       total.textContent = p.score;
 
       row.appendChild(mark);
-      row.appendChild(name);
+      row.appendChild(stack);
       row.appendChild(total);
 
       if (state.players.length > 2) {
@@ -674,20 +829,40 @@
       return;
     }
     el.undo.disabled = false;
-    state.log.slice().reverse().slice(0, 12).forEach(function (entry) {
+    state.log.slice().reverse().forEach(function (entry, revIndex) {
+      var index = state.log.length - 1 - revIndex;
       var li = document.createElement('li');
       var who = document.createElement('span');
       who.className = 'who';
-      who.textContent = (state.players[entry.player] && state.players[entry.player].name) || 'Player';
+      var whoName = (state.players[entry.player] && state.players[entry.player].name) || 'Player';
+      who.textContent = whoName;
       var what = document.createElement('span');
       what.className = 'what';
       what.textContent = entry.word || 'manual entry';
       var pts = document.createElement('span');
       pts.className = 'pts';
       pts.textContent = (entry.points >= 0 ? '+' : '') + entry.points;
+
+      var kill = document.createElement('button');
+      kill.className = 'kill';
+      kill.type = 'button';
+      kill.textContent = '×';
+      kill.title = 'Remove this turn';
+      kill.setAttribute('aria-label', 'Remove ' + whoName + "'s " + entry.points + ' points' +
+        (entry.word ? ' for ' + entry.word : ''));
+      kill.addEventListener('click', function () {
+        var label = whoName + "'s " + entry.points + ' points' + (entry.word ? ' for ' + entry.word : '');
+        if (!confirm('Remove ' + label + '?')) return;
+        if (state.players[entry.player]) state.players[entry.player].score -= entry.points;
+        state.log.splice(index, 1);
+        renderAll();
+        save();
+      });
+
       li.appendChild(who);
       li.appendChild(what);
       li.appendChild(pts);
+      li.appendChild(kill);
       el.log.appendChild(li);
     });
   }
@@ -699,19 +874,84 @@
     renderLog();
   }
 
+  /* ---------- word check ---------- */
+
+  var DICT_KEY = 'scrabble:dict';
+  var dictCache = {};
+  var dictTimer = null;
+  var dictStatus = document.getElementById('dictStatus');
+
+  try {
+    dictCache = JSON.parse(window.localStorage.getItem(DICT_KEY) || '{}');
+  } catch (e) { dictCache = {}; }
+
+  function rememberWord(word, ok) {
+    dictCache[word] = ok;
+    try {
+      window.localStorage.setItem(DICT_KEY, JSON.stringify(dictCache));
+    } catch (e) { /* cache is a bonus, not a requirement */ }
+  }
+
+  function showDict(state, text) {
+    dictStatus.hidden = false;
+    dictStatus.dataset.state = state;
+    dictStatus.textContent = text;
+  }
+
+  function checkWord(word) {
+    if (word.length < 2) { dictStatus.hidden = true; return; }
+
+    if (Object.prototype.hasOwnProperty.call(dictCache, word)) {
+      if (dictCache[word]) showDict('valid', word + ' is in the dictionary');
+      else showDict('unknown', word + ' is not in the dictionary');
+      return;
+    }
+
+    showDict('checking', 'Checking ' + word + '…');
+
+    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word.toLowerCase()))
+      .then(function (res) {
+        if (el.wordInput.value !== word) return; // they typed on, ignore stale answer
+        if (res.ok) {
+          rememberWord(word, true);
+          showDict('valid', word + ' is in the dictionary');
+        } else if (res.status === 404) {
+          rememberWord(word, false);
+          showDict('unknown', word + ' is not in the dictionary');
+        } else {
+          showDict('offline', 'Dictionary is busy — check it yourselves');
+        }
+      })
+      .catch(function () {
+        if (el.wordInput.value !== word) return;
+        showDict('offline', 'No connection — dictionary check unavailable');
+      });
+  }
+
+  function queueCheck(word) {
+    clearTimeout(dictTimer);
+    if (word.length < 2) { dictStatus.hidden = true; return; }
+    dictTimer = setTimeout(function () { checkWord(word); }, 600);
+  }
+
   /* ---------- actions ---------- */
 
   function clearPad() {
     pad.word = '';
     pad.marks = [];
-    pad.dw = false;
-    pad.tw = false;
+    pad.dw = 0;
+    pad.tw = 0;
     pad.bingo = false;
     pad.number = '';
     el.wordInput.value = '';
     el.numberInput.value = '';
     el.bingo.classList.remove('on');
-    document.querySelectorAll('.mults button[data-w]').forEach(function (b) { b.classList.remove('on'); });
+    clearTimeout(dictTimer);
+    dictStatus.hidden = true;
+    document.querySelectorAll('.mults button[data-w]').forEach(function (b) {
+      b.classList.remove('on');
+      b.textContent = b.dataset.w === '2' ? 'Double word' : 'Triple word';
+    });
     renderTiles();
     renderTotal();
   }
@@ -727,6 +967,7 @@
     pad.word = clean;
     renderTiles();
     renderTotal();
+    queueCheck(clean);
   });
 
   el.numberInput.addEventListener('input', function () {
@@ -746,10 +987,12 @@
   });
 
   document.querySelectorAll('.mults button[data-w]').forEach(function (b) {
+    var base = b.textContent;
     b.addEventListener('click', function () {
       var key = b.dataset.w === '2' ? 'dw' : 'tw';
-      pad[key] = !pad[key];
-      b.classList.toggle('on', pad[key]);
+      pad[key] = (pad[key] + 1) % 3;
+      b.classList.toggle('on', pad[key] > 0);
+      b.textContent = pad[key] === 2 ? base + ' ×2' : base;
       renderTotal();
     });
   });
