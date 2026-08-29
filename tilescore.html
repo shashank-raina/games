@@ -558,6 +558,15 @@
     flex: none;
   }
 
+  #howto {
+    margin: 0 0 20px;
+    border-color: #ffffff26;
+    background: #ffffff08;
+  }
+
+  #howto summary { color: var(--gold); }
+  #howto[open] { background: var(--felt); }
+
   .colophon {
     margin: 22px 4px 0;
     font-size: 11.5px;
@@ -582,6 +591,40 @@
     <div class="wordmark" id="wordmark" aria-label="Tile Score"></div>
     <p class="tagline">Keep score, tile by tile</p>
   </header>
+
+  <details class="rules" id="howto">
+    <summary>How to use this</summary>
+    <ol>
+      <li>
+        <h3>Set up the players</h3>
+        <p>Tap a name to change it. Add player puts a third or fourth on the board; the × next to a name removes them. Names stick around between games.</p>
+      </li>
+      <li>
+        <h3>Score a turn</h3>
+        <p>Type the word played. Tiles appear on the rack with their values, and the running total sits above the Add button. Tap Add to give those points to whoever's turn it is — play then passes to the next player automatically.</p>
+      </li>
+      <li>
+        <h3>Mark the premium squares</h3>
+        <p>Tap a tile to cycle it: double letter, triple letter, blank, plain. Use Double word or Triple word for the whole play, and tap either twice if the word covers two of those squares. Used all 7 adds the 50-point bonus.</p>
+      </li>
+      <li>
+        <h3>Enter points directly</h3>
+        <p>Switch to Number if you've already done the maths. Negative numbers work here, which is what you want for the end-of-game deduction for tiles left on a rack.</p>
+      </li>
+      <li>
+        <h3>Fix a mistake</h3>
+        <p>Undo last turn reverses the most recent score and hands the turn back. To remove any other turn — or a word that was successfully challenged — tap the × beside it in the Turns list. That takes the points off without giving the turn back.</p>
+      </li>
+      <li>
+        <h3>Change whose turn it is</h3>
+        <p>Tap any player's row. The gold marker moves to them and the Add button follows.</p>
+      </li>
+      <li>
+        <h3>Finish up</h3>
+        <p>Finish game shows you the winner, files the result under Past games, and clears the board for the next one. Clear wipes the scores without saving. Everything is stored on this device in this browser, so it survives closing the page.</p>
+      </li>
+    </ol>
+  </details>
 
   <section class="board" aria-label="Scores">
     <ul id="players"></ul>
