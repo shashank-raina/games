@@ -328,8 +328,9 @@
   .dict[data-state="valid"]::before { background: #8FD6A8; }
   .dict[data-state="unknown"] { color: var(--dw); }
   .dict[data-state="unknown"]::before { background: var(--dw); }
-  .dict[data-state="offline"] { color: #C2A56B; }
+  .dict[data-state="offline"] { color: #C2A56B; cursor: pointer; }
   .dict[data-state="offline"]::before { background: #C2A56B; }
+  .dict a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
   .mults { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -557,6 +558,16 @@
     flex: none;
   }
 
+  .colophon {
+    margin: 22px 4px 0;
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #6E9488;
+    text-align: center;
+  }
+
+  .colophon a { color: #8FB2A5; text-decoration: underline; text-underline-offset: 2px; }
+
   button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -640,6 +651,11 @@
       </li>
     </ol>
   </details>
+
+  <p class="colophon">
+    Word check by <a href="https://freedictionaryapi.com" target="_blank" rel="noopener">FreeDictionaryAPI.com</a>,
+    using <a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a> data under CC BY-SA 4.0.
+  </p>
 
 </div>
 
@@ -981,48 +997,93 @@
     dictCache = JSON.parse(window.localStorage.getItem(DICT_KEY) || '{}');
   } catch (e) { dictCache = {}; }
 
-  function rememberWord(word, ok) {
-    dictCache[word] = ok;
+  function cachedEntry(word) {
+    var hit = dictCache[word];
+    if (hit === undefined) return null;
+    if (typeof hit === 'boolean') return {ok: hit, url: ''};  // older cache format
+    return hit;
+  }
+
+  function rememberWord(word, entry) {
+    dictCache[word] = entry;
     try {
       window.localStorage.setItem(DICT_KEY, JSON.stringify(dictCache));
     } catch (e) { /* cache is a bonus, not a requirement */ }
   }
 
-  function showDict(state, text) {
+  function showDict(state, text, linkUrl) {
     dictStatus.hidden = false;
     dictStatus.dataset.state = state;
     dictStatus.textContent = text;
+    if (linkUrl) {
+      var a = document.createElement('a');
+      a.href = linkUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'Wiktionary';
+      dictStatus.appendChild(document.createTextNode(' · '));
+      dictStatus.appendChild(a);
+    }
+  }
+
+  function showFound(word, entry) {
+    if (entry.ok) showDict('valid', word + ' is a word', entry.url);
+    else showDict('unknown', word + ' is not in the dictionary');
+  }
+
+  // Wiktionary-backed, and better at inflected forms than a plain dictionary.
+  function lookupPrimary(word) {
+    return fetch('https://freedictionaryapi.com/api/v1/entries/en/' + encodeURIComponent(word.toLowerCase()))
+      .then(function (res) {
+        if (res.status === 404) return {ok: false, url: ''};
+        if (!res.ok) throw new Error('status ' + res.status);
+        return res.json().then(function (data) {
+          var found = !!(data && data.entries && data.entries.length);
+          return {ok: found, url: (data && data.source && data.source.url) || ''};
+        });
+      });
+  }
+
+  function lookupFallback(word) {
+    return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word.toLowerCase()))
+      .then(function (res) {
+        if (res.status === 404) return {ok: false, url: ''};
+        if (!res.ok) throw new Error('status ' + res.status);
+        return {ok: true, url: ''};
+      });
   }
 
   function checkWord(word) {
     if (word.length < 2) { dictStatus.hidden = true; return; }
 
-    if (Object.prototype.hasOwnProperty.call(dictCache, word)) {
-      if (dictCache[word]) showDict('valid', word + ' is in the dictionary');
-      else showDict('unknown', word + ' is not in the dictionary');
+    var cached = cachedEntry(word);
+    if (cached) { showFound(word, cached); return; }
+
+    if (navigator.onLine === false) {
+      showDict('offline', 'Offline — tap to check when you reconnect');
       return;
     }
 
     showDict('checking', 'Checking ' + word + '…');
 
-    fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word.toLowerCase()))
-      .then(function (res) {
-        if (el.wordInput.value !== word) return; // they typed on, ignore stale answer
-        if (res.ok) {
-          rememberWord(word, true);
-          showDict('valid', word + ' is in the dictionary');
-        } else if (res.status === 404) {
-          rememberWord(word, false);
-          showDict('unknown', word + ' is not in the dictionary');
-        } else {
-          showDict('offline', 'Dictionary is busy — check it yourselves');
-        }
+    lookupPrimary(word)
+      .catch(function () { return lookupFallback(word); })
+      .then(function (entry) {
+        if (el.wordInput.value !== word) return;  // they typed on, ignore stale answer
+        rememberWord(word, entry);
+        showFound(word, entry);
       })
       .catch(function () {
         if (el.wordInput.value !== word) return;
-        showDict('offline', 'No connection — dictionary check unavailable');
+        showDict('offline', "Can't reach the dictionary — tap to retry");
       });
   }
+
+  dictStatus.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A') return;
+    var state = dictStatus.dataset.state;
+    if (state === 'offline' && pad.word) checkWord(pad.word);
+  });
 
   function queueCheck(word) {
     clearTimeout(dictTimer);
