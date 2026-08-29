@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## What this repo is
 
-A collection of small browser games and game tools, served as static files from GitHub Pages. Currently one game: `scrabble-scorepad.html`, a Scrabble scorekeeper.
+A collection of small browser games and game tools, served as static files from GitHub Pages. Currently one game: `tilescore.html`, a word-game scorekeeper.
 
 ## Hard constraints
 
@@ -16,6 +16,8 @@ These are the point of the repo, not preferences:
 - **No network dependency for core function.** A game must be fully playable offline. Network calls are allowed only for optional extras, and must fail gracefully with a visible message — never a broken state or a silent hang.
 
 Web fonts loaded from Google Fonts are the one accepted exception, and every font stack must name a real local fallback.
+
+`index.html` is the site landing page listing every game. Adding a game means adding a card to it — same felt-and-tiles styling, no framework.
 
 ## Target environment
 
@@ -30,7 +32,7 @@ iOS Safari on a phone is the primary target — these get played at a table, one
 
 Use `localStorage`, wrapped in `try`/`catch` — Private Browsing throws on write, and the game must keep working when it does.
 
-Namespace keys per game: `scrabble:game`, `scrabble:dict`. Never bare keys like `game` or `state`.
+Namespace keys per game: `tilescore:game`, `tilescore:dict`. Never bare keys like `game` or `state`.
 
 Store the whole game state as one JSON blob under one key rather than spreading it across many. When loading an older save, guard for fields that didn't exist yet:
 
@@ -53,7 +55,7 @@ Never break someone's saved game with a schema change.
 
 These tools get used to settle arguments, so the rules logic has to be right.
 
-For Scrabble specifically: the 50-point bonus is added *after* word multipliers, never multiplied. Blanks score zero but still take the word multiplier. Word multipliers stack multiplicatively — two double-word squares is 4×.
+For Tile Score specifically: the 50-point bonus is added *after* word multipliers, never multiplied. Blanks score zero but still take the word multiplier. Word multipliers stack multiplicatively — two double-word squares is 4×.
 
 If a rule varies between rule sets (challenge penalties differ between North American and Collins play, for instance), don't have the app assert one. Leave it to the table.
 
