@@ -353,6 +353,15 @@
   #bingo.on { background: var(--gold); border-color: var(--gold); color: var(--ink); font-weight: 700; }
   #bingo.nudge { border-color: var(--gold); color: var(--gold); }
 
+  .mults button:disabled {
+    opacity: 0.35;
+    cursor: default;
+    border-color: #ffffff1a;
+    color: #C7DCD2;
+    background: transparent;
+    font-weight: 400;
+  }
+
   .total {
     display: flex;
     align-items: baseline;
@@ -605,7 +614,11 @@
       </li>
       <li>
         <h3>Mark the premium squares</h3>
-        <p>Tap a tile to cycle it: double letter, triple letter, blank, plain. Use Double word or Triple word for the whole play, and tap either twice if the word covers two of those squares. Used all 7 adds the 50-point bonus.</p>
+        <p>Tap a tile to cycle it: double letter, triple letter, blank, plain. Use Double word or Triple word for the whole play, and tap either twice if the word covers two of those squares.</p>
+      </li>
+      <li>
+        <h3>The 50-point bonus</h3>
+        <p>Used all 7 stays greyed out until the word reaches seven letters, since a shorter word can't have emptied your rack. Above that it's your call — a long word that hooks onto tiles already on the board might use only five or six of yours, and the app can't tell. Shorten the word after setting it and the bonus comes off automatically.</p>
       </li>
       <li>
         <h3>Enter points directly</h3>
@@ -920,12 +933,19 @@
   }
 
   function renderTotal() {
+    var eligible = pad.word.length >= 7;
+    if (!eligible && pad.bingo) {          // word was shortened after the bonus was set
+      pad.bingo = false;
+      el.bingo.classList.remove('on');
+    }
+    el.bingo.disabled = !eligible;
+    el.bingo.title = eligible ? '' : 'Needs at least 7 letters';
+    el.bingo.classList.toggle('nudge', eligible && !pad.bingo);
+
     var t = currentTotal();
     el.totalValue.textContent = t;
     el.add.disabled = (pad.mode === 'word' && pad.word.length === 0) ||
                       (pad.mode === 'number' && pad.number === '');
-    if (pad.word.length >= 7 && !pad.bingo) el.bingo.classList.add('nudge');
-    else el.bingo.classList.remove('nudge');
   }
 
   function renderLog() {
