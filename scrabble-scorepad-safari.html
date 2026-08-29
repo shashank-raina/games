@@ -183,12 +183,14 @@
 
   .board-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     padding: 8px 8px 4px;
   }
 
   .board-actions button {
     flex: 1;
+    min-width: 92px;
     background: transparent;
     border: 1px solid #ffffff26;
     color: #C7DCD2;
@@ -201,6 +203,7 @@
     cursor: pointer;
   }
 
+  .board-actions button.primary { border-color: var(--gold); color: var(--gold); }
   .board-actions button:hover { border-color: var(--gold); color: var(--gold); }
 
   /* ---------- pad ---------- */
@@ -519,6 +522,41 @@
 
   .rules .lore { margin-top: 6px; color: #7FA396; font-size: 12.5px; font-style: italic; }
 
+  #archiveList { list-style: none; margin: 0 0 14px; padding: 0; }
+
+  #archiveList li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 1px solid #ffffff12;
+  }
+
+  #archiveList .when {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7FA396;
+    width: 74px;
+    flex: none;
+    padding-top: 3px;
+  }
+
+  #archiveList .results { flex: 1; min-width: 0; font-size: 14px; line-height: 1.6; }
+  #archiveList .results .won { color: var(--gold); font-weight: 700; }
+  #archiveList .results .pts { font-family: 'Bitter', Georgia, serif; }
+
+  #archiveList .kill {
+    background: none;
+    border: none;
+    color: #7FA396;
+    font-size: 17px;
+    line-height: 1;
+    padding: 2px 0 2px 6px;
+    cursor: pointer;
+    flex: none;
+  }
+
   button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
   @media (prefers-reduced-motion: reduce) {
@@ -538,7 +576,8 @@
     <ul id="players"></ul>
     <div class="board-actions">
       <button id="addPlayer" type="button">Add player</button>
-      <button id="newGame" type="button">New game</button>
+      <button id="finishGame" type="button" class="primary">Finish game</button>
+      <button id="clearGame" type="button">Clear</button>
     </div>
   </section>
 
@@ -579,6 +618,11 @@
     <button id="undo" type="button">Undo last turn</button>
   </section>
 
+  <details class="rules" id="archiveBox" hidden>
+    <summary>Past games</summary>
+    <ul id="archiveList"></ul>
+  </details>
+
   <details class="rules">
     <summary>Settle an argument</summary>
     <ol>
@@ -611,7 +655,8 @@
   var state = {
     players: [{name:'Player 1', score:0}, {name:'Player 2', score:0}],
     turn: 0,
-    log: []
+    log: [],
+    archive: []
   };
 
   var pad = { mode:'word', word:'', marks:[], dw:0, tw:0, bingo:false, number:'' };
@@ -655,6 +700,7 @@
     try {
       var saved = JSON.parse(payload);
       if (saved && saved.players && saved.players.length) state = saved;
+      if (!state.archive) state.archive = [];
     } catch (e) { /* corrupt save, start fresh */ }
   }
 
@@ -867,11 +913,61 @@
     });
   }
 
+  function renderArchive() {
+    var box = document.getElementById('archiveBox');
+    var list = document.getElementById('archiveList');
+    if (!state.archive || !state.archive.length) { box.hidden = true; return; }
+    box.hidden = false;
+    list.innerHTML = '';
+
+    state.archive.slice().reverse().forEach(function (game, revIndex) {
+      var index = state.archive.length - 1 - revIndex;
+      var li = document.createElement('li');
+
+      var when = document.createElement('span');
+      when.className = 'when';
+      var d = new Date(game.date);
+      when.textContent = isNaN(d) ? '' : d.toLocaleDateString(undefined, {day:'numeric', month:'short'});
+
+      var results = document.createElement('div');
+      results.className = 'results';
+      var best = Math.max.apply(null, game.results.map(function (r) { return r.score; }));
+      game.results.slice().sort(function (a, b) { return b.score - a.score; }).forEach(function (r) {
+        var row = document.createElement('div');
+        if (r.score === best) row.className = 'won';
+        row.appendChild(document.createTextNode(r.name + ' '));
+        var pts = document.createElement('span');
+        pts.className = 'pts';
+        pts.textContent = r.score;
+        row.appendChild(pts);
+        results.appendChild(row);
+      });
+
+      var kill = document.createElement('button');
+      kill.className = 'kill';
+      kill.type = 'button';
+      kill.textContent = '×';
+      kill.setAttribute('aria-label', 'Delete this saved game');
+      kill.addEventListener('click', function () {
+        if (!confirm('Delete this saved game?')) return;
+        state.archive.splice(index, 1);
+        renderArchive();
+        save();
+      });
+
+      li.appendChild(when);
+      li.appendChild(results);
+      li.appendChild(kill);
+      list.appendChild(li);
+    });
+  }
+
   function renderAll() {
     renderPlayers();
     renderTiles();
     renderTotal();
     renderLog();
+    renderArchive();
   }
 
   /* ---------- word check ---------- */
@@ -1030,14 +1126,39 @@
     save();
   });
 
-  document.getElementById('newGame').addEventListener('click', function () {
-    if (state.log.length && !confirm('Clear all scores and start a new game? Names stay put.')) return;
+  function resetBoard() {
     state.players.forEach(function (p) { p.score = 0; });
     state.log = [];
     state.turn = 0;
     clearPad();
     renderAll();
     save();
+  }
+
+  document.getElementById('finishGame').addEventListener('click', function () {
+    if (!state.log.length) { alert('No turns to save yet.'); return; }
+    var best = Math.max.apply(null, state.players.map(function (p) { return p.score; }));
+    var winners = state.players.filter(function (p) { return p.score === best; })
+      .map(function (p) { return p.name || 'Player'; });
+    var summary = winners.length > 1 ? winners.join(' and ') + ' tie on ' + best
+                                     : winners[0] + ' wins with ' + best;
+    if (!confirm(summary + '. Save this game and start a new one?')) return;
+    state.archive.push({
+      date: new Date().toISOString(),
+      results: state.players.map(function (p, i) {
+        return {
+          name: p.name || 'Player',
+          score: p.score,
+          turns: state.log.filter(function (e) { return e.player === i; }).length
+        };
+      })
+    });
+    resetBoard();
+  });
+
+  document.getElementById('clearGame').addEventListener('click', function () {
+    if (state.log.length && !confirm('Clear these scores without saving? Names stay put.')) return;
+    resetBoard();
   });
 
   el.wordInput.addEventListener('keydown', function (e) {
