@@ -19,6 +19,17 @@ Web fonts loaded from Google Fonts are the one accepted exception, and every fon
 
 `index.html` is the site landing page listing every game. Adding a game means adding a card to it — same felt-and-tiles styling, no framework.
 
+## External APIs
+
+Tile Score looks words up against `freedictionaryapi.com` (Wiktionary data, CORS enabled, no key, 1,000 requests/hour per IP), falling back to `api.dictionaryapi.dev` when the first doesn't respond. The response shapes differ — the primary nests definitions under `entries[].senses[].definition`, the fallback under `meanings[].definitions[].definition` — so both paths need handling whenever that code is touched.
+
+Two things not to drop:
+
+- **Attribution is a licence condition.** Wiktionary data is CC BY-SA 4.0, and the API asks for a visible credit and a link back to the source entry. The colophon at the foot of the page and the Wiktionary link on a found word both exist for that reason.
+- **Results are cached in localStorage**, so a repeated word costs nothing and works offline. Keep the cache when changing the lookup, and tolerate older cached entries that lack newer fields.
+
+Every lookup must degrade to a visible, actionable message rather than a hang, and the rest of the app must stay fully usable when the dictionary is unreachable.
+
 ## Target environment
 
 iOS Safari on a phone is the primary target — these get played at a table, one-handed. Desktop is secondary.

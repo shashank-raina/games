@@ -16,7 +16,7 @@ A scorekeeper for tile-based word games. Type the word, tap the tiles that lande
 - Tap a tile to mark it double letter, triple letter, or blank
 - Word multipliers stack — 4×, 6×, 9× and beyond
 - "Used all 7" adds the 50-point bonus, after multipliers where it belongs
-- Checks words against Wiktionary
+- Checks words against Wiktionary and shows the meaning
 - Tracks turns and points-per-turn for each player
 - Delete any turn when a challenge succeeds
 - Saves finished games to a history list

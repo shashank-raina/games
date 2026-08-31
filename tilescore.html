@@ -467,6 +467,21 @@
 
   #undo:disabled { opacity: 0.35; cursor: default; }
 
+  .meaning {
+    margin: 6px 2px 0 17px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #A9C6BA;
+  }
+
+  .meaning .pos {
+    font-style: italic;
+    color: #7FA396;
+    margin-right: 5px;
+  }
+
+  .meaning[hidden] { display: none; }
+
   .rules {
     margin-top: 26px;
     background: var(--felt);
@@ -610,7 +625,7 @@
       </li>
       <li>
         <h3>Score a turn</h3>
-        <p>Type the word played. Tiles appear on the rack with their values, and the running total sits above the Add button. Tap Add to give those points to whoever's turn it is — play then passes to the next player automatically.</p>
+        <p>Type the word played. Tiles appear on the rack with their values, and the running total sits above the Add button. A line underneath tells you whether it's in the dictionary, with the meaning and a link to the full entry. Tap Add to give those points to whoever's turn it is — play then passes to the next player automatically.</p>
       </li>
       <li>
         <h3>Mark the premium squares</h3>
@@ -658,6 +673,7 @@
       <input id="wordInput" type="text" autocomplete="off" autocapitalize="characters"
              spellcheck="false" placeholder="Type the word played">
       <p id="dictStatus" class="dict" role="status" aria-live="polite" hidden></p>
+      <p id="dictMeaning" class="meaning" hidden></p>
       <div class="rack"><div id="tiles" class="tiles"></div></div>
       <p class="hint">Tap a tile to mark it: double letter, triple letter, blank. Word check uses a general English dictionary, not a tournament word list.</p>
       <div class="mults">
@@ -1095,20 +1111,54 @@
     }
   }
 
+  function showMeaning(entry) {
+    var box = document.getElementById('dictMeaning');
+    box.innerHTML = '';
+    if (!entry || !entry.def) { box.hidden = true; return; }
+    box.hidden = false;
+    if (entry.pos) {
+      var pos = document.createElement('span');
+      pos.className = 'pos';
+      pos.textContent = entry.pos;
+      box.appendChild(pos);
+    }
+    box.appendChild(document.createTextNode(entry.def));
+  }
+
   function showFound(word, entry) {
-    if (entry.ok) showDict('valid', word + ' is a word', entry.url);
-    else showDict('unknown', word + ' is not in the dictionary');
+    if (entry.ok) {
+      showDict('valid', word + ' is a word', entry.url);
+      showMeaning(entry);
+    } else {
+      showDict('unknown', word + ' is not in the dictionary');
+      showMeaning(null);
+    }
+  }
+
+  function trim(text) {
+    if (!text) return '';
+    text = String(text).replace(/\s+/g, ' ').trim();
+    return text.length > 160 ? text.slice(0, 157).replace(/[\s,;:]+\S*$/, '') + '…' : text;
   }
 
   // Wiktionary-backed, and better at inflected forms than a plain dictionary.
   function lookupPrimary(word) {
     return fetch('https://freedictionaryapi.com/api/v1/entries/en/' + encodeURIComponent(word.toLowerCase()))
       .then(function (res) {
-        if (res.status === 404) return {ok: false, url: ''};
+        if (res.status === 404) return {ok: false, url: '', pos: '', def: ''};
         if (!res.ok) throw new Error('status ' + res.status);
         return res.json().then(function (data) {
-          var found = !!(data && data.entries && data.entries.length);
-          return {ok: found, url: (data && data.source && data.source.url) || ''};
+          var list = (data && data.entries) || [];
+          var first = null;
+          for (var i = 0; i < list.length && !first; i++) {
+            if (list[i].senses && list[i].senses.length && list[i].senses[0].definition) first = list[i];
+          }
+          return {
+            ok: !!list.length,
+            url: (data && data.source && data.source.url) || '',
+            pos: first ? (first.partOfSpeech || '') : '',
+            def: first ? trim(first.senses[0].definition) : ''
+          };
         });
       });
   }
@@ -1116,24 +1166,35 @@
   function lookupFallback(word) {
     return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word.toLowerCase()))
       .then(function (res) {
-        if (res.status === 404) return {ok: false, url: ''};
+        if (res.status === 404) return {ok: false, url: '', pos: '', def: ''};
         if (!res.ok) throw new Error('status ' + res.status);
-        return {ok: true, url: ''};
+        return res.json().then(function (data) {
+          var meaning = data && data[0] && data[0].meanings && data[0].meanings[0];
+          var def = meaning && meaning.definitions && meaning.definitions[0];
+          return {
+            ok: true,
+            url: '',
+            pos: (meaning && meaning.partOfSpeech) || '',
+            def: trim(def && def.definition)
+          };
+        });
       });
   }
 
   function checkWord(word) {
-    if (word.length < 2) { dictStatus.hidden = true; return; }
+    if (word.length < 2) { dictStatus.hidden = true; showMeaning(null); return; }
 
     var cached = cachedEntry(word);
     if (cached) { showFound(word, cached); return; }
 
     if (navigator.onLine === false) {
       showDict('offline', 'Offline — tap to check when you reconnect');
+      showMeaning(null);
       return;
     }
 
     showDict('checking', 'Checking ' + word + '…');
+    showMeaning(null);
 
     lookupPrimary(word)
       .catch(function () { return lookupFallback(word); })
@@ -1145,6 +1206,7 @@
       .catch(function () {
         if (el.wordInput.value !== word) return;
         showDict('offline', "Can't reach the dictionary — tap to retry");
+        showMeaning(null);
       });
   }
 
@@ -1174,6 +1236,7 @@
     el.bingo.classList.remove('on');
     clearTimeout(dictTimer);
     dictStatus.hidden = true;
+    showMeaning(null);
     document.querySelectorAll('.mults button[data-w]').forEach(function (b) {
       b.classList.remove('on');
       b.textContent = b.dataset.w === '2' ? 'Double word' : 'Triple word';
