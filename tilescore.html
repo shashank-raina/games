@@ -570,6 +570,7 @@
   #archiveList .results { flex: 1; min-width: 0; font-size: 14px; line-height: 1.6; }
   #archiveList .results .won { color: var(--gold); font-weight: 700; }
   #archiveList .results .pts { font-family: 'Bitter', Georgia, serif; }
+  #archiveList .results .turns { color: #7FA396; font-size: 12px; font-weight: 400; }
 
   #archiveList .kill {
     background: none;
@@ -1040,6 +1041,12 @@
         pts.className = 'pts';
         pts.textContent = r.score;
         row.appendChild(pts);
+        if (typeof r.turns === 'number') {
+          var turns = document.createElement('span');
+          turns.className = 'turns';
+          turns.textContent = ' · ' + r.turns + (r.turns === 1 ? ' turn' : ' turns');
+          row.appendChild(turns);
+        }
         results.appendChild(row);
       });
 
