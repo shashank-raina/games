@@ -1,0 +1,10 @@
+# Not part of the site: kept out of the Cloudflare assets upload.
+.git
+.gitignore
+.github
+.wrangler
+.assetsignore
+wrangler.jsonc
+CLAUDE.md
+README.md
+node_modules
