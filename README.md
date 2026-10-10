@@ -24,6 +24,23 @@ A scorekeeper for tile-based word games. Type the word, tap the tiles that lande
 
 On iPhone, open it in Safari and use Share → Add to Home Screen to get it full-screen.
 
+### 🥊 Rare Fight
+
+A word duel for two people sharing one phone. Both get the same category and the same clock, and the rarer your answers the harder they hit.
+
+**Play it:** [littlegames.uk/rarefight.html](https://littlegames.uk/rarefight.html)
+
+- Over a hundred categories in eight packs: rhymes, "starts with", home and life, food and drink, and more
+- Every answer scores as you type it: jab +1, hook +2, uppercut +3, knockout +4
+- Answers not on the built-in list get a judge score the two of you agree at the reveal
+- Clash rule: an answer you both gave scores nothing for either of you
+- Spelling slips of a letter or two still count, and plurals match their singular
+- Coins earned from points buy extra seconds or a masked hint at a rare answer
+- The reveal shows a few rare answers you both missed
+- Settings, names, coins and the game in progress all survive closing the tab
+
+On iPhone, open it in Safari and use Share → Add to Home Screen to get it full-screen.
+
 ## Running it locally
 
 Open the `.html` file in a browser. That's it.

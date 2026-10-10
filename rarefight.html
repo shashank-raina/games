@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rare Fight</title>
+<meta name="description" content="A two-player word duel for one phone. Same category, rarer answers score more.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rare Fight">
+<meta name="theme-color" content="#CF2D3D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one narrow column laid out like a fight card. Red corner is player 1, blue corner is player 2,
+     and the active corner floods the turn screen. Answers are scored as punches: jab, hook, uppercut, knockout. */
+  :root {
+    --f-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', sans-serif;
+    --f-body: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    --bg: #E7EAF0; --panel: #F5F6F9; --ink: #12161E; --muted: #576072; --line: #C5CBD6; --soft: #D8DDE6;
+    --red: #CF2D3D; --red-text: #B01F2E; --blue: #1F5FC4; --blue-text: #1A52AD;
+    --gold: #F0B400; --gold-ink: #241800;
+    --on-color: #FFFFFF; --on-color-dim: rgba(255, 255, 255, 0.3);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0F1218; --panel: #171B24; --ink: #EDEFF4; --muted: #9BA3B5; --line: #2C3342; --soft: #262C3A;
+      --red: #D5303F; --red-text: #FF7B87; --blue: #2F6FDB; --blue-text: #86B3FF;
+      --gold: #F0B400; --gold-ink: #241800;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0F1218; --panel: #171B24; --ink: #EDEFF4; --muted: #9BA3B5; --line: #2C3342; --soft: #262C3A;
+    --red: #D5303F; --red-text: #FF7B87; --blue: #2F6FDB; --blue-text: #86B3FF;
+    --gold: #F0B400; --gold-ink: #241800;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg); color: var(--ink); font: 16px/1.45 var(--f-body);
+    padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(40px + env(safe-area-inset-bottom, 0px));
+    min-height: 100vh;
+  }
+  h1, h2, h3, p, ul, ol { margin: 0; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .wrap { max-width: 560px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+  .wrap.wide { max-width: 880px; }
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .actions { display: flex; flex-direction: column; gap: 10px; }
+  .eyebrow { font: 600 .72rem/1.2 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+  .lede { color: var(--muted); font-size: 1.02rem; max-width: 44ch; }
+  .hint { color: var(--muted); font-size: .88rem; }
+  .link { background: none; border: 0; padding: 8px 0; min-height: 40px; color: var(--muted); text-decoration: underline; font: 600 .9rem var(--f-body); align-self: flex-start; }
+
+  /* Title */
+  .mark { font: 900 clamp(4.2rem, 24vw, 7.8rem)/.8 var(--f-display); text-transform: uppercase; letter-spacing: -.01em; display: flex; flex-direction: column; gap: .06em; padding-top: 8px; }
+  .mark .r { color: var(--red-text); }
+  .mark .b { color: var(--blue-text); align-self: flex-end; }
+
+  /* Cards and setup */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .corners { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .corner { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-top: 6px solid var(--line); border-radius: 4px; min-width: 0; }
+  .corner.red { border-top-color: var(--red); } .corner.blue { border-top-color: var(--blue); }
+  .corner.red .eyebrow { color: var(--red-text); } .corner.blue .eyebrow { color: var(--blue-text); }
+  .field { flex: 1; min-width: 0; width: 100%; min-height: 52px; padding: 0 12px; font: 500 1.1rem var(--f-body); background: var(--bg); color: var(--ink); border: 2px solid var(--ink); border-radius: 4px; }
+  .field::placeholder { color: var(--muted); opacity: 1; }
+  .set { display: flex; flex-direction: column; gap: 8px; }
+  .set .lab { font-weight: 700; }
+  .seg { display: flex; border: 2px solid var(--ink); border-radius: 4px; overflow: hidden; }
+  .seg button { flex: 1; min-height: 44px; background: transparent; border: 0; border-left: 2px solid var(--ink); font: 600 1rem var(--f-mono); }
+  .seg button:first-child { border-left: 0; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .tiers { list-style: none; padding: 0; display: flex; flex-direction: column; }
+  .tiers li { display: grid; grid-template-columns: 8rem 1fr; gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+  .tiers li:first-child { border-top: 0; }
+  .tiers .chip { justify-self: start; }
+
+  /* Buttons */
+  .btn { min-height: 54px; padding: 0 20px; border: 2px solid var(--ink); border-radius: 4px; background: var(--ink); color: var(--bg); font: 800 1.35rem/1 var(--f-display); letter-spacing: .06em; text-transform: uppercase; width: 100%; }
+  .btn.compact { width: auto; flex: none; min-width: 84px; }
+  .btn.ghost { background: transparent; color: var(--ink); }
+  .btn.red { background: var(--red); border-color: var(--red); color: var(--on-color); }
+  .btn.blue { background: var(--blue); border-color: var(--blue); color: var(--on-color); }
+  .btn:active { transform: translateY(1px); }
+
+  /* Score tug bar */
+  .tug { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+  .tug-side { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .tug-side.blue { justify-content: flex-end; }
+  .tug-name { font-weight: 700; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .tug-side.red .tug-name { color: var(--red-text); } .tug-side.blue .tug-name { color: var(--blue-text); }
+  .tug-pts { font: 900 2.2rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+  .tug-bar { grid-column: 1 / -1; height: 12px; background: var(--blue); border-radius: 2px; overflow: hidden; }
+  .tug-bar i { display: block; height: 100%; background: var(--red); transition: width .5s; }
+
+  /* Category title */
+  .cat { font: 800 clamp(2rem, 9vw, 3rem)/.95 var(--f-display); text-transform: uppercase; text-wrap: balance; letter-spacing: .01em; }
+  .cat.big { font-size: clamp(2.7rem, 13vw, 4.3rem); }
+
+  /* Turn screen */
+  .band { border-radius: 6px; padding: 16px; color: var(--on-color); display: flex; flex-direction: column; gap: 14px; }
+  .band.red { background: var(--red); } .band.blue { background: var(--blue); }
+  .band-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .who { font: 600 .72rem/1.2 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; min-width: 0; }
+  .who b { display: block; font: 800 1.5rem/1 var(--f-display); letter-spacing: .04em; margin-top: 4px; overflow-wrap: anywhere; }
+  .secs { font: 600 3.2rem/.9 var(--f-mono); font-variant-numeric: tabular-nums; }
+  .clockbar { height: 8px; background: var(--on-color-dim); border-radius: 2px; overflow: hidden; }
+  .clockbar i { display: block; height: 100%; background: var(--on-color); width: 100%; }
+  .band.urgent .secs { animation: pulse .5s steps(2) infinite; }
+  .band.done .secs { animation: none; }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .addrow { display: flex; gap: 8px; }
+  .msg { min-height: 1.4em; font-size: .9rem; color: var(--muted); }
+  .listhead { display: flex; justify-content: space-between; align-items: center; }
+  .answers { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { padding: 7px 11px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; font-weight: 600; overflow-wrap: anywhere; animation: pop .18s ease-out; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  @keyframes pop { from { transform: scale(.92); opacity: .4; } }
+
+  /* Pass screen */
+  .pass { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
+  .pass .name { font: 900 clamp(3rem, 16vw, 5.5rem)/.85 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere; }
+  .pass .name.red { color: var(--red-text); } .pass .name.blue { color: var(--blue-text); }
+
+  /* Reveal */
+  .lead { font: 800 1.5rem/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
+  .lead.red { color: var(--red-text); } .lead.blue { color: var(--blue-text); }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+  .col { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+  .col-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 14px; color: var(--on-color); }
+  .col-h.red { background: var(--red); } .col-h.blue { background: var(--blue); }
+  .col-h b { font: 800 1.4rem/1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; overflow-wrap: anywhere; }
+  .col-h span { font: 900 2.4rem/1 var(--f-display); font-variant-numeric: tabular-nums; }
+  .rows { list-style: none; padding: 0; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); min-width: 0; }
+  .row .txt { min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+  .row small { display: block; color: var(--muted); font-weight: 400; font-size: .78rem; }
+  .row.clash .txt { text-decoration: line-through; color: var(--muted); }
+  .empty { padding: 14px; color: var(--muted); }
+  .chip { flex: none; font: 600 .74rem/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding: 6px 8px; border-radius: 3px; border: 1px solid transparent; white-space: nowrap; background: transparent; color: var(--ink); }
+  .chip.t0 { border: 1px dashed var(--ink); }
+  .chip.t1 { border-color: var(--muted); color: var(--muted); }
+  .chip.t2 { background: var(--soft); color: var(--ink); }
+  .chip.t3 { background: var(--ink); color: var(--bg); }
+  .chip.t4 { background: var(--gold); color: var(--gold-ink); }
+  .chip.clash { border-color: var(--line); color: var(--muted); }
+  button.chip.t0 { min-height: 40px; min-width: 76px; padding: 0 10px; }
+  .note { color: var(--muted); font-size: .9rem; }
+
+  /* Final */
+  .verdict { font: 900 clamp(3rem, 16vw, 5.5rem)/.85 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere; }
+  .verdict.red { color: var(--red-text); } .verdict.blue { color: var(--blue-text); }
+  .final-score { font: 800 2rem/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+  .tbl { display: grid; grid-template-columns: 2rem 1fr 3rem 3rem; gap: 0 8px; align-items: center; font-size: .92rem; }
+  .tbl > * { padding: 8px 0; border-top: 1px solid var(--line); min-width: 0; }
+  .tbl .h { font: 600 .7rem/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-top: 0; }
+  .tbl .h.r { text-align: right; }
+  .tbl .n { font: 600 .85rem var(--f-mono); color: var(--muted); }
+  .tbl .c { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tbl .p { font: 600 1rem var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+  .tbl .p.win { font-weight: 700; }
+  .tbl .p.win.red { color: var(--red-text); } .tbl .p.win.blue { color: var(--blue-text); }
+  .best { display: flex; flex-direction: column; gap: 4px; }
+  .best b { font: 800 1.3rem/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .03em; }
+  .best.red b { color: var(--red-text); } .best.blue b { color: var(--blue-text); }
+
+  /* Live scoring and power-ups */
+  .live .row:first-child { border-top: 0; }
+  .live .empty { padding: 14px; color: var(--muted); font-size: .92rem; }
+  .pows { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+  .pu { flex: 1; min-width: 130px; min-height: 48px; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 0 12px; background: var(--panel); border: 2px solid var(--ink); border-radius: 4px; font: 700 .95rem var(--f-body); text-align: left; }
+  .pu i { font: 600 .8rem var(--f-mono); font-style: normal; display: inline-flex; align-items: center; gap: 6px; }
+  .pu:disabled { opacity: .45; cursor: not-allowed; }
+  .coin { width: 14px; height: 14px; border-radius: 50%; background: var(--gold); border: 2px solid var(--gold-ink); display: inline-block; flex: none; }
+  .bank { display: flex; align-items: center; gap: 6px; font: 600 1rem var(--f-mono); padding: 0 4px; font-variant-numeric: tabular-nums; }
+  .hints { display: flex; flex-direction: column; gap: 6px; }
+  .hintline { font: 600 1rem var(--f-mono); letter-spacing: .08em; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .hintline b { font-weight: 600; color: var(--muted); letter-spacing: .14em; text-transform: uppercase; font-size: .7rem; margin-right: 8px; }
+
+  .packs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pack { min-height: 40px; padding: 0 12px; border: 2px solid var(--ink); border-radius: 4px; background: transparent; font: 600 .9rem var(--f-body); }
+  .pack[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  .colophon { margin-top: 10px; font-size: .78rem; line-height: 1.7; color: var(--muted); text-align: center; }
+  .colophon a { display: inline-block; min-height: 40px; line-height: 40px; padding: 0 8px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  'use strict';
+
+  var T=[null,
+    {n:'Jab',pts:1,d:'Common'},
+    {n:'Hook',pts:2,d:'Uncommon'},
+    {n:'Uppercut',pts:3,d:'Rare'},
+    {n:'Knockout',pts:4,d:'Very rare'}];
+  
+  /* t = four comma-separated lists, from common (jab) to very rare (knockout). "a|b" gives aliases for one answer. */
+  var BANK=[
+  {n:'Words that rhyme with “pow”',ban:'pow',t:[
+   "now, how, cow, wow, bow",
+   "vow, brow, plough|plow, allow, meow|miaow, chow, row, sow",
+   "prow, endow, avow, bough, ciao, thou, somehow, anyhow, eyebrow, disallow",
+   "kowtow, powwow, highbrow, lowbrow, scow, know-how, bow-wow, luau"]},
+  {n:'Words that rhyme with “light”',ban:'light',t:[
+   "night, right, bright, fight, tight, white, might, sight",
+   "flight, height, kite, bite, site, write, quite, fright, knight, slight",
+   "sprite, polite, ignite, invite, tonight, delight, despite, midnight, daylight, plight, blight, spite, rite, moonlight, unite, recite, alight, upright, outright, airtight, excite, incite",
+   "overbite, parasite, appetite, erudite, termite, copyright, satellite, dynamite, bight, wight, anchorite, meteorite, neophyte, stalactite, contrite, lite"]},
+  {n:'Words that rhyme with “day”',ban:'day',t:[
+   "say, play, way, may, stay, pay, today, away, hey, bay, ray, lay",
+   "gray|grey, tray, clay, stray, spray, delay, okay|ok, display, pray, sway, hay",
+   "bouquet, ballet, buffet, cliché, sorbet, array, betray, hooray, decay, convey, obey, survey, essay, beret, valet, duvet, parfait, gourmet, chalet, crochet",
+   "negligee, cabaret, soirée, fiancé, toupee, matinee, protégé, bidet, sachet, ricochet, croquet"]},
+  {n:'Things you find in a home',t:[
+   "sofa|couch, bed, table, chair, tv|television, fridge|refrigerator, wardrobe, lamp",
+   "kettle, toaster, curtains, rug|carpet, oven, sink, mirror, microwave, bookshelf|bookcase, cooker, radiator, clock, cushion",
+   "doormat, bread bin, tea towel, smoke alarm, extension lead, coat hooks, fruit bowl, airing cupboard, plant pot, picture frame, boiler, ironing board",
+   "draught excluder|draft excluder, stopcock, fuse box|consumer unit, loft ladder, trouser press, dado rail, immersion heater, boot scraper, spice rack, key rack"]},
+  {n:'Things in a kitchen',t:[
+   "fridge, oven, sink, kettle, knife, fork, spoon, plate",
+   "toaster, microwave, frying pan|saucepan|pan, cup, mug, bowl, cooker, spatula, freezer, dishwasher",
+   "colander, whisk, grater, chopping board, tin opener|can opener, peeler, ladle, rolling pin, tongs, oven glove, measuring jug, sieve",
+   "mandoline, garlic press, pestle and mortar|pestle|mortar, zester, melon baller, trivet, steamer, cafetière|cafetiere, lazy susan, potato ricer"]},
+  {n:'Things in a bathroom',t:[
+   "toilet|loo, bath, sink, shower, toothbrush, towel, mirror, soap",
+   "toothpaste, shampoo, toilet roll|toilet paper, bath mat, plug, taps|tap, razor, flannel|face cloth, mouthwash",
+   "loofah|sponge, conditioner, extractor fan, shower curtain, bathroom scales|scales, plunger, toilet brush, cotton buds, floss|dental floss",
+   "bidet, pumice stone, bath bomb, towel rail, shaving brush, toilet cistern, sanitary bin, shower caddy, bath salts, limescale remover"]},
+  {n:'Things in a garage or shed',t:[
+   "car, bike|bicycle, ladder, hammer, spade, lawnmower|lawn mower, toolbox, paint",
+   "screwdriver, drill, saw, wheelbarrow, rake, hose, spanner, nails, screws, bin",
+   "workbench, jump leads, jerry can, spirit level, hacksaw, pliers, crowbar, secateurs, compost, strimmer, trowel",
+   "vice|vise, tyre pump, blowtorch, soldering iron, plane, mitre saw, oil funnel, grease gun, tin snips, breaker bar, chisel"]},
+  {n:'Things you pack for a holiday',t:[
+   "passport, suitcase, clothes, swimming costume|swimsuit|bikini|swim trunks, sun cream|suncream|sunscreen, sunglasses, phone, charger, shorts, toothbrush",
+   "flip flops, towel, camera, hat, book, underwear, socks, sandals, travel adapter|adapter, tickets",
+   "insect repellent, first aid kit, travel pillow, beach bag, snorkel, guidebook, after sun|aftersun, headphones, kindle|e-reader, power bank",
+   "dry bag, packing cubes, luggage tag, money belt, travel iron, inflatable ring, water shoes, mosquito net, universal plug"]},
+  {n:'Fruits',t:[
+   "apple, banana, orange, grape, strawberry, pear, lemon, pineapple",
+   "mango, peach, cherry, kiwi, melon, plum, raspberry, blueberry, lime, watermelon",
+   "apricot, nectarine, pomegranate, fig, papaya, passion fruit, grapefruit, blackberry, cranberry, coconut, redcurrant",
+   "lychee, quince, persimmon, kumquat, guava, dragon fruit, damson, gooseberry, tamarillo, rambutan, medlar, loquat"]},
+  {n:'Animals at the zoo',t:[
+   "lion, tiger, elephant, giraffe, monkey, zebra, bear",
+   "penguin, gorilla, hippo|hippopotamus, rhino|rhinoceros, kangaroo, crocodile, panda, snake, camel, flamingo",
+   "meerkat, lemur, cheetah, leopard, orangutan, otter, sloth, red panda, tapir, wolf, parrot",
+   "okapi, binturong, capybara, aardvark, pangolin, wallaby, gibbon, serval, komodo dragon, tamarin, quokka, caracal"]},
+  {n:'Things that are red',t:[
+   "apple, blood, rose, strawberry, fire engine, tomato, post box|pillar box, ladybird|ladybug",
+   "cherry, ruby, stop sign, lipstick, chilli|chili, brick, cranberry, poppy, london bus|bus, santa suit",
+   "beetroot, radish, raspberry, pomegranate, fire extinguisher, boxing glove, lobster, paprika, red kite, robin, ketchup, redcurrant",
+   "cochineal, garnet, carmine, madder, scarlet macaw, vermilion, crimson, rooibos, red mullet, cayenne"]},
+  {n:'Things that are round',t:[
+   "ball, wheel, sun, moon, coin, plate, clock, orange",
+   "pizza, globe, bubble, ring, button, cd, doughnut|donut, hula hoop, bauble, steering wheel",
+   "marble, manhole cover, frisbee, tambourine, puck, porthole, tyre|tire, dartboard, lens, pea, snooker ball, cymbal",
+   "petri dish, roundel, bagel, ball bearing, grommet, pulley, quoit, crumpet, bullseye, gasket, washer"]},
+  {n:'Things that fly',t:[
+   "bird, plane|aeroplane|airplane, helicopter, bee, butterfly, kite, fly, bat, rocket",
+   "balloon, drone, eagle, wasp, moth, hot air balloon, owl, parachute, frisbee, paper aeroplane|paper plane",
+   "hang glider, glider, dragonfly, jet, zeppelin|airship, seagull|gull, hawk, pigeon, mosquito, jetpack, paraglider, hummingbird",
+   "flying squirrel, flying fish, pterodactyl, gyrocopter, microlight, blimp, shuttlecock, boomerang, spitfire, sugar glider, fruit bat"]},
+  {n:'Things in a classroom or school bag',t:[
+   "pen, pencil, book, desk, chair, ruler, teacher, whiteboard",
+   "rubber|eraser, sharpener, calculator, bag, paper, scissors, glue, pencil case, board, lunchbox|lunch box, chalk",
+   "protractor, compass, highlighter, set square, textbook, register, planner|diary, globe, blackboard, stapler, hole punch, homework",
+   "geometry set, abacus, slide rule, inkwell, bunsen burner, cloakroom peg, tuck box, bell, blotter, pastoral book"]},
+  {n:'Pizza toppings',t:[
+   "cheese|mozzarella, pepperoni, ham, mushroom, pineapple, onion, tomato, sweetcorn",
+   "olives|olive, peppers|pepper, chicken, bacon, sausage, jalapeño|jalapeno, spinach, beef, tuna",
+   "anchovies|anchovy, rocket, salami, chorizo, prawns|prawn, basil, artichoke, parmesan, garlic, egg, bbq sauce, bbq chicken",
+   "nduja, capers, truffle, pesto, goat's cheese|goats cheese, burrata, prosciutto, aubergine|eggplant, pulled pork, lamb, figs"]},
+  {n:'Types of pasta',t:[
+   "spaghetti, penne, lasagne|lasagna, macaroni, tagliatelle, fusilli, ravioli, linguine",
+   "farfalle, rigatoni, tortellini, fettuccine, cannelloni, orzo, pappardelle, vermicelli, conchiglie|shells, gnocchi",
+   "bucatini, orecchiette, cavatappi, ziti, rotini, tortelloni, trofie, angel hair|capellini, paccheri, casarecce",
+   "strozzapreti, mafaldine, pici, fregola, anelli, campanelle, radiatori, garganelli, ditalini, lumache, tripoline, bigoli"]},
+  {n:'Ice cream flavours',t:[
+   "vanilla, chocolate, strawberry, mint choc chip|mint chocolate chip, cookie dough, raspberry ripple, pistachio, caramel",
+   "coffee, salted caramel, rum and raisin, banana, toffee, lemon, cookies and cream, honeycomb, mango, coconut",
+   "neapolitan, tutti frutti, bubblegum, rocky road, butterscotch, stracciatella, cherry, peanut butter, tiramisu, hazelnut",
+   "black sesame, lavender, earl grey, matcha, rose, olive oil, avocado, ube, durian, fennel"]},
+  {n:'Breakfast foods',t:[
+   "cereal, toast, eggs|egg, bacon, porridge, pancakes|pancake, croissant, sausage",
+   "yoghurt|yogurt, fruit, beans, bagel, muesli, granola, waffles|waffle, orange juice, tea, coffee, crumpets|crumpet",
+   "black pudding, hash browns|hash brown, kippers|kipper, kedgeree, eggs benedict, french toast, smoothie, omelette|omelet, marmite, mushrooms, tomato, soldiers",
+   "bubble and squeak, congee, shakshuka, arbroath smokie, devilled kidneys, oatcakes, huevos rancheros, bircher muesli, laverbread|laver bread, kefir"]},
+  {n:'Sports played with a ball',t:[
+   "football|soccer, basketball, tennis, rugby, cricket, golf, baseball",
+   "netball, volleyball, hockey, handball, table tennis|ping pong, snooker, bowls, rounders, dodgeball, american football",
+   "water polo, lacrosse, squash, pool, croquet, softball, hurling, gaelic football, ten pin bowling|bowling, padel, korfball, pickleball",
+   "shinty, sepak takraw, jai alai, pelota, fives, camogie, bossaball, wheelchair rugby, bandy, polocrosse, tchoukball, eton wall game"]},
+  {n:'Things in a park',t:[
+   "swings|swing, slide, bench, trees|tree, grass, ducks|duck, pond, path",
+   "roundabout, seesaw, bin, dog, football pitch, flowers|flower, fountain, playground, bandstand, squirrel, picnic",
+   "sandpit|sandbox, bowling green, duck pond, climbing frame, ice cream van, cafe|café, drinking fountain, tennis court, skate park, water feature, bird feeder, jogger",
+   "pavilion, ha-ha, gazebo, pergola, boating lake, crazy golf, maze, war memorial, topiary, sundial, aviary, park keeper"]},
+  {n:'Musical instruments',t:[
+   "guitar, piano, drums, violin, trumpet, flute, saxophone, bass",
+   "clarinet, cello, harp, trombone, keyboard, ukulele, harmonica, tambourine, recorder, xylophone, accordion, banjo",
+   "oboe, bassoon, tuba, french horn, viola, double bass, bagpipes, triangle, cymbals, mandolin, glockenspiel, didgeridoo, kazoo",
+   "theremin, sitar, bodhran, lute, hurdy-gurdy, ocarina, zither, sousaphone, cor anglais, lyre, balalaika, marimba, djembe, harpsichord"]},
+  {n:'Countries in Europe',t:[
+   "france, spain, italy, germany, uk|united kingdom, england, scotland, wales, poland, greece, portugal",
+   "netherlands|holland, belgium, sweden, norway, denmark, ireland, switzerland, austria, finland, russia",
+   "hungary, czech republic|czechia, romania, croatia, bulgaria, serbia, ukraine, iceland, slovakia, slovenia, lithuania, latvia, estonia, albania, turkey",
+   "luxembourg, malta, monaco, liechtenstein, san marino, andorra, montenegro, north macedonia|macedonia, moldova, kosovo, belarus, bosnia and herzegovina|bosnia, vatican city|vatican, cyprus"]},
+  {n:'Capital cities',t:[
+   "london, paris, rome, madrid, berlin, washington dc|washington, tokyo, beijing|peking",
+   "moscow, cairo, canberra, ottawa, dublin, lisbon, amsterdam, athens, delhi|new delhi, vienna, brussels, stockholm",
+   "oslo, copenhagen, helsinki, warsaw, budapest, prague, bangkok, nairobi, buenos aires, lima, santiago, bogota, hanoi, seoul, jakarta, wellington",
+   "ulaanbaatar, reykjavik, valletta, tallinn, vilnius, riga, bratislava, ljubljana, tbilisi, kathmandu, thimphu, ashgabat, bishkek, asuncion, montevideo, port moresby, tirana, yerevan"]},
+  {n:'Things at the seaside',t:[
+   "sand, sea, waves, bucket, spade, sandcastle|sand castle, ice cream, seagull|gull, shells|shell, deckchair",
+   "pier, rock pool|rockpool, crab, lifeguard, towel, windbreak, fish and chips, donkey, candy floss, lighthouse, beach hut, surfboard",
+   "arcade, pedalo, seaweed, jellyfish, starfish, driftwood, kite, harbour, groyne|groin, pebbles|pebble, stick of rock|rock, bunting, lilo",
+   "whelk stall, punch and judy, promenade|prom, breakwater, razor shell, mermaid's purse|mermaids purse, tide table, bathing machine, crazy golf, lido, sea wall, coastguard"]},
+  {n:'Things in a handbag or pockets',t:[
+   "phone, keys, wallet, purse, tissues, lipstick, money|cash, pen",
+   "headphones|earphones, mints|mint, makeup|make-up, comb, hairbrush, receipts|receipt, chewing gum|gum, hand sanitiser|hand sanitizer, sunglasses, glasses, umbrella",
+   "lip balm, hair tie|hairband|bobble, tampons, hand cream, plasters|plaster, paracetamol, notebook, loose change|change, perfume, nail file, compact mirror",
+   "safety pin, kirby grip|hairpin, travel card, loyalty cards, penknife|pocket knife, poo bags, tweezers, matches, lighter, boarding pass"]},
+  {n:'Things in a toolbox',t:[
+   "hammer, screwdriver, nails, screws, pliers, spanner|wrench, tape measure, saw",
+   "drill, spirit level, chisel, allen key|hex key, stanley knife|craft knife, torch, glue, sandpaper",
+   "hacksaw, mallet, wire strippers, drill bits, masking tape, rawl plugs|wall plugs, stud finder, socket set, voltage tester, adjustable spanner, insulation tape|electrical tape",
+   "bradawl, plumb line, mole grips, pincers, awl, countersink, caulking gun, tin snips, fretsaw, rasp, cold chisel|bolster"]},
+  {n:'Things at a wedding',t:[
+   "bride, groom, cake, rings|ring, dress, flowers, vows, guests",
+   "bridesmaids|bridesmaid, best man, confetti, speeches|speech, church, photographer, suit, veil, bouquet, first dance, ushers|usher, dj",
+   "buffet, toast, garter, hen do|hen party, stag do|stag party, top table, marquee, favours|favour, photo booth, page boy|pageboy, flower girl, registrar, vicar",
+   "something borrowed, wedding planner, confetti cannon, order of service, seating plan|table plan, cufflinks, fascinator, chuppah, wedding march, honeymoon"]},
+  {n:'Dog breeds',t:[
+   "labrador, poodle, pug, bulldog, german shepherd|alsatian, golden retriever|retriever, chihuahua, beagle",
+   "husky|siberian husky, dachshund, boxer, rottweiler, spaniel|cocker spaniel, collie|border collie, great dane, dalmatian, corgi|welsh corgi, terrier, greyhound",
+   "whippet, pomeranian, shih tzu, schnauzer, basset hound, bloodhound, weimaraner, saluki, akita, mastiff, staffie|staffordshire bull terrier, vizsla, samoyed, pointer",
+   "borzoi, bichon frise, newfoundland, leonberger, affenpinscher, basenji, sloughi, xoloitzcuintli, lhasa apso, otterhound, kooikerhondje, bergamasco"]},
+  {n:'Things that are cold',t:[
+   "ice, snow, freezer|fridge, winter, ice cream, penguin|polar bear, north pole, iceberg",
+   "ice cube, igloo, arctic, antarctica, frost, snowman, iced tea|cold drink, ice lolly|popsicle|ice pop, glacier, hail, blizzard, sleet",
+   "icicle, liquid nitrogen, dry ice, frostbite, tundra, ice rink, ski slope, permafrost, walk in freezer, slush",
+   "snow cone, cryotherapy, absolute zero, cold shoulder, deep freeze, hoar frost, cryogenic chamber, yeti, snow leopard, krill"]},
+  {n:'Things that are yellow',t:[
+   "banana, sun, lemon, duck|rubber duck, sunflower, custard, butter, school bus",
+   "daffodil, cheese, honey, chick, mustard, canary, taxi, sweetcorn|corn, pineapple, bee",
+   "buttercup, dandelion, egg yolk|yolk, rapeseed|oilseed rape|canola, saffron, post it, highlighter, hazard sign|caution tape, yellow submarine, banana skin, lemon curd, hi vis jacket|hi vis",
+   "turmeric, gorse, primrose, amber, topaz, citrine, forsythia, laburnum, yellowhammer, brimstone butterfly, chartreuse, mimosa"]},
+  {n:'Things you do in the morning',t:[
+   "wake up, brush teeth|brush my teeth, shower, breakfast|eat breakfast, get dressed, make coffee|coffee|make tea|tea, check phone|check my phone",
+   "make bed|make the bed, turn off alarm|alarm, stretch, feed the cat|feed the dog|feed pets, pack lunch, commute, put on makeup|makeup, read the news|news, walk the dog, brush hair",
+   "meditate, journal, hit snooze|snooze, iron shirt|iron clothes, do yoga|yoga, go for a run|run, take vitamins|vitamins, open curtains|open the curtains, water plants",
+   "cold plunge, gratitude list, oil pulling, dry brushing, tongue scraping, sun salutation, wind the clock, put the bins out, empty the dishwasher"]},
+  {n:'Things with wheels',t:[
+   "car, bike|bicycle, bus, lorry|truck, train, skateboard, wheelbarrow, pram|pushchair|stroller|buggy",
+   "wheelchair, scooter, trolley, motorbike|motorcycle, tractor, suitcase, roller skates|rollerblades, shopping trolley, van, taxi, trike",
+   "office chair, go kart, segway, unicycle, hoverboard, cart, caravan, ambulance, fire engine, forklift, steamroller",
+   "penny farthing, rickshaw, tuk tuk|tuktuk, gurney, dolly, castor|caster, wagon, chariot, hearse, rollator, hand truck, lunar rover"]},
+  {n:'Things that start with “ice”',pre:'ice',t:[
+   "iceland, ice cream, ice cube, iceberg, ice skating, ice hockey, icicle, icing",
+   "icelandic, ice lolly, ice rink, ice skates, ice pack, ice bucket, ice age, ice cold, iced tea, iced coffee, ice bath, ice cap",
+   "icebreaker, ice pick, ice axe, ice sheet, ice shelf, ice storm, icebox, ice fishing, ice dancing, ice maker, ice scraper, ice tray",
+   "icehouse, ice floe, ice wine, ice hotel, ice palace, ice station, iceman, icefall, ice pellets, ice crystal, icebound, ice sculpture"]},
+  {n:'Things that start with “sun”',pre:'sun',t:[
+   "sunshine, sunflower, sunday, sunglasses, sunset, sunrise, sunburn, sun cream",
+   "sunscreen, sunbed, sundial, sunroof, sunbeam, sunlight, sundae, sunhat, suntan, sundress",
+   "sundown, sunstroke, sunspot, sunbather, sunlounger, sunbird, sunfish, sunblock, sunlamp, sunny side up, sunken",
+   "sundew, sunburst, suntrap, sundries, sunstone, sunup, sun king, sunless, sunbittern, sunderland"]},
+  {n:'Things that start with “water”',pre:'water',t:[
+   "waterfall, water bottle, watermelon, waterproof, water park, waterslide|water slide, water gun, watercolour|watercolor",
+   "waterloo, watermill, water polo, waterbed, watercress, waterfront, water lily, water pistol, water tank, water balloon, water fountain, water cooler, water skiing",
+   "waterline, watershed, waterway, waterlogged, water buffalo, water cannon, watertight, water wheel, water tower, water meter, water butt, water feature, water pump, water softener",
+   "water vole, water chestnut, water moccasin, water boatman, water table, water clock, water hyacinth, waterspout, water strider, water jump, water ouzel, water glass"]},
+  {n:'Things that start with “fire”',pre:'fire',t:[
+   "firework|fireworks, fire engine, fireman, fireplace, firefighter, fire alarm, fire escape, firefly",
+   "firewall, firewood, firelight, fire drill, fire exit, fire station, fire hydrant, firecracker, fireside, fire extinguisher, fire truck|firetruck, fire pit|firepit",
+   "fireproof, firearm, firebreak, firebrand, fire blanket, fire door, fire brigade, fire starter|firestarter, fire bucket, firebird, fire ant, fireboat, firelighter",
+   "fire salamander, firedamp, fireweed, firecrest, fire opal, fire eater, fire walker, firebug, firestorm, fire tower, fire warden"]}
+  ];
+  
+  /* ---------- Expansion: groups, new categories, bigger answer lists ---------- */
+  var GROUPS=['Rhymes','Starts with','Home & life','Food & drink','Nature & animals','Places & travel','Fun & culture','Colours & traits'];
+  
+  BANK.push(
+  /* Rhymes */
+  {n:'Words that rhyme with “cat”',g:'Rhymes',ban:'cat',t:[
+   "hat, bat, mat, sat, rat, fat, flat, that, chat, pat",
+   "splat, brat, gnat, combat, tat, vat, scat, spat, slat, drat, format",
+   "doormat, acrobat, habitat, wombat, diplomat, democrat, aristocrat, thermostat, bobcat, wildcat, cravat, laundromat",
+   "muskrat, bureaucrat, technocrat, autocrat, ziggurat, fiat, copycat, tit for tat"]},
+  {n:'Words that rhyme with “tree”',g:'Rhymes',ban:'tree',t:[
+   "me, see, free, three, key, sea, bee, tea, knee, we",
+   "she, he, flee, agree, degree, ski, pea, glee, plea, fee, be, tee, spree, flea",
+   "guarantee, referee, jubilee, trainee, refugee, absentee, marquee, settee, committee, employee, debris, chimpanzee",
+   "pedigree, tepee|teepee, banshee, apogee, bourgeoisie, jamboree, nominee, devotee, licensee, franchisee, amputee, escapee, detainee"]},
+  {n:'Words that rhyme with “bear”',g:'Rhymes',ban:'bear',t:[
+   "chair, hair, air, pair, care, share, fair, there, where, stare",
+   "wear, square, dare, flare, spare, glare, scare, rare, mare, snare, bare, pear, swear, their",
+   "despair, compare, beware, aware, prepare, nightmare, unfair, millionaire, billionaire, questionnaire, repair, declare, affair, welfare, warfare, impair",
+   "solitaire, éclair|eclair, doctrinaire, concessionaire, laissez-faire, thoroughfare, heir, ere, debonair, mohair, delaware"]},
+  {n:'Words that rhyme with “moon”',g:'Rhymes',ban:'moon',t:[
+   "soon, spoon, noon, june, tune, balloon, cartoon, raccoon",
+   "lagoon, typhoon, monsoon, harpoon, saloon, platoon, baboon, cocoon, maroon, dune, prune, croon, swoon, afternoon",
+   "honeymoon, buffoon, bassoon, pontoon, macaroon, doubloon, festoon, tycoon, lampoon, spittoon",
+   "pantaloon, picaroon, rigadoon, dragoon, bridoon, gadroon"]},
+  {n:'Words that rhyme with “snow”',g:'Rhymes',ban:'snow',t:[
+   "go, no, know, show, flow, slow, grow, low, glow, blow",
+   "throw, toe, row, crow, dough, though, foe, hello, doe, woe, roe, mow, tow, so, sew, oh, ago",
+   "mistletoe, window, shadow, pillow, elbow, borrow, widow, meadow, rainbow, fellow, tomorrow, potato, tomato, buffalo, hero, zero, piano, volcano, radio",
+   "tableau, plateau, bureau, chateau, bordeaux, cameo, portfolio, stiletto, torpedo, innuendo, desperado, crescendo, avocado, apropos, dado, fiasco"]},
+  {n:'Words that rhyme with “bell”',g:'Rhymes',ban:'bell',t:[
+   "sell, tell, well, shell, fell, smell, spell, yell, hell, cell",
+   "swell, dwell, knell, quell, gel, jell, hotel, motel",
+   "farewell, compel, excel, rebel, expel, propel, repel, dispel, retell, bluebell, doorbell, cowbell, dumbbell, foretell",
+   "carousel, citadel, caramel, infidel, pastel, bagatelle, mademoiselle, gazelle, chanterelle, villanelle, personnel, parallel"]},
+  
+  /* Starts with */
+  {n:'Words that start with “book”',g:'Starts with',pre:'book',t:[
+   "bookshop, bookcase, bookmark, bookshelf, bookworm, booklet, bookmaker, bookkeeper",
+   "bookstore, bookend, book club, book fair, booking, bookplate, bookstall, book token, bookbinding, book review, book launch, bookie",
+   "bookbinder, bookseller, booking office, bookrest, bookish, booker prize, book bag, bookmobile, book of kells, book of common prayer",
+   "bookland, bookhand, book lung, booklouse, book muslin, book value, bookwright, book of hours, book of the dead"]},
+  {n:'Words that start with “hand”',g:'Starts with',pre:'hand',t:[
+   "handbag, handshake, handle, handwriting, handsome, handy, handcuffs, handstand",
+   "handbrake, handball, handmade, hand cream, hand sanitiser, handout, handrail, handful, hand towel, hand luggage, handkerchief, handyman, hand grenade, handbook, hand dryer, hand wash",
+   "handlebar, handsaw, handspring, hand puppet, handcart, handloom, handmaid, handgun, handset, hand mirror, hand pump, handover, handicap",
+   "handfasting, handsel, handspike, handbill, handcraft, handhold, handline, handpicked, handrest, handsewn, handwork, handwoven"]},
+  {n:'Words that start with “back”',g:'Starts with',pre:'back',t:[
+   "backpack, backbone, backyard, backstage, backfire, background, backache, backhand",
+   "backup, backstroke, backslash, backdrop, backgammon, backward, backside, backlog, backpacker, back door, backspace, back seat, backstab, back garden, backbench",
+   "backbencher, backcomb, backfield, backflip, backlash, backlit, backrest, backroom, backsliding, backtrack, backwater, backwoods, backhander, back burner, backing track, backscratcher",
+   "backformation, backsaw, backstay, backstitch, backstreet, backswing, backwash, backbite, backblocks, backcloth, backhoe, backlist, backmost, backstop, backbreaking"]},
+  {n:'Words that start with “sea”',g:'Starts with',pre:'sea',t:[
+   "seaside, seashell, seagull, seaweed, seahorse, sea lion, seafood, seal, season",
+   "seat, search, seabed, seabird, seaport, seaplane, sea level, seashore, seasick, seamstress, seam, seance, seaman, sea salt, sea urchin, seafarer",
+   "seagoing, seaworthy, seaboard, sea breeze, sea bass, sea bream, sea cucumber, sea eagle, sea kale, seafaring, sea fog, seamount, seaquake, sea mist",
+   "sea buckthorn, sea holly, sea lavender, sea pink, seabeach, sea anemone, sea otter, sea snake, sea slug, sea squirt, sea spider, sea star, sea trout"]},
+  {n:'Words that start with “rain”',g:'Starts with',pre:'rain',t:[
+   "rainbow, raincoat, raindrop, rainforest, rainfall, rainstorm, rain cloud, rainy day",
+   "rainwater, rain gauge, rain dance, rainmaker, rain check, rain jacket, rain boots, rainproof, rain hat, rainswept, rainwear, rain shadow",
+   "rain cover, rainband, rain barrel, rain butt, rain shower, rainspout, rain sensor, rainbow trout, rainbow lorikeet, rain tree, rainmaking",
+   "rain stick, rain crow, rain frog, rain lily, rain fly, raindrop cake, rain garden, rainscreen"]},
+  {n:'Words that start with “snow”',g:'Starts with',pre:'snow',t:[
+   "snowman, snowball, snowflake, snowboard, snowdrop, snowfall, snowstorm, snow day",
+   "snowplough|snowplow, snowmobile, snow globe, snowshoe, snow angel, snow leopard, snowdrift, snow boots, snowsuit, snow cone, snowdonia, snowdon",
+   "snowfield, snowbird, snowcap, snowline, snowpack, snowblower, snow goose, snowy owl, snow bunting, snow pea, snowberry, snowbound",
+   "snow crab, snowmelt, snowscape, snow cat, snowbell, snow gum, snow monkey, snowslide, snow tyre|snow tire, snowshill"]},
+  {n:'Words that start with “head”',g:'Starts with',pre:'head',t:[
+   "headache, headband, headlight, headphones, headline, headteacher, headquarters, headboard",
+   "headmaster, headmistress, headrest, headscarf, headstand, headway, headlamp, headstone, head start, headcount, headhunter, header, heading, headland",
+   "headgear, headlock, headdress, headwind, headwaters, headspace, headsman, head girl, head boy, head chef, head waiter, head office, head lice, headbutt",
+   "headfirst, headlong, headmost, headpiece, headsail, headshot, headstall, headstrong, head on, headspring"]},
+  {n:'Words that start with “foot”',g:'Starts with',pre:'foot',t:[
+   "football, footprint, footpath, footstep, footnote, footwear, foothold, foot pump",
+   "footbridge, footstool, footlights, foot brake, footman, footage, footballer, foothill, footwork, foot massage, foot spa, foot locker",
+   "footfall, footing, footloose, footplate, footrest, footsore, footslog, footsie, foot soldier, foot fault, foot and mouth, football pitch",
+   "footpad, footboard, footcloth, footle, footy, foot rot, footmark, footgear"]},
+  {n:'Words that start with “light”',g:'Starts with',pre:'light',t:[
+   "lighthouse, lightbulb, lightning, lighter, lightweight, light switch, light year, light show",
+   "lightship, light pollution, light aircraft, light railway, light fitting, light sleeper, light ale, light opera, light entertainment, light infantry, light touch, light rain",
+   "lightbox, lightheaded, lightfooted, light meter, light pen, lightproof, light fingered, light brigade, light industry, light bulb moment",
+   "lightwood, lightfast, lightening, lightless, lightsome, lightwave"]},
+  {n:'Words that start with “over”',g:'Starts with',pre:'over',t:[
+   "overcoat, overtake, overtime, overdue, overflow, overhead, overall, overboard",
+   "overdraft, overdose, overheat, overnight, overlook, overpass, overseas, oversleep, overweight, overcast, overcome, overwork, overreact, overeat",
+   "overbite, overcrowded, overgrown, overhang, overlap, overload, overpower, overrule, overshadow, oversight, overstate, overthrow, overture, overwhelm, overlord",
+   "overarm, overbearing, overcharge, overdub, overfish, overmantel, overreach, overripe, oversubscribed, overstay, overtone, overwinter, overshoe"]},
+  
+  /* Home & life */
+  {n:'Things in a bedroom',g:'Home & life',t:[
+   "bed, pillow, duvet, wardrobe, lamp, mirror, alarm clock, curtains",
+   "bedside table|bedside cabinet, chest of drawers|drawers, blanket, sheets|sheet, mattress, slippers, dressing gown, hangers|hanger, rug, laundry basket, teddy bear|teddy",
+   "headboard, bed frame, fitted sheet, hot water bottle, dressing table, clothes horse, ottoman, night light|nightlight, bedspread, throw, eye mask, blackout blind, pillowcase|pillow case, duvet cover",
+   "valance, bolster, tallboy, divan, counterpane, chaise longue, daybed, hat stand, bedwarmer"]},
+  {n:'Things in a garden',g:'Home & life',t:[
+   "grass, flowers|flower, tree, shed, fence, lawn, bench, pond",
+   "patio, hedge, bird bath, barbecue|bbq, washing line, gnome, greenhouse, swing, trampoline, hose, bird feeder, flower bed",
+   "compost heap|compost bin, water butt, trellis, decking, rockery, sundial, wheelbarrow, pergola, arbour, patio heater, vegetable patch|veg patch, cold frame",
+   "topiary, cloche, obelisk, espalier, dovecote, folly, bird table, rose arch"]},
+  {n:'Things at the gym',g:'Home & life',t:[
+   "treadmill, weights|dumbbells|dumbbell, mat|yoga mat, mirror, towel, water bottle, bench, locker",
+   "exercise bike, rowing machine, kettlebell, barbell, cross trainer|elliptical, punch bag, skipping rope, resistance band, shower, trainers, protein shake",
+   "squat rack, medicine ball, foam roller, pull up bar, leg press, cable machine, stepper|stair climber, sauna, steam room, swiss ball|gym ball, weight belt, chalk",
+   "assault bike, battle ropes, plyo box, sled, ab roller, smith machine, hack squat, lat pulldown, pec deck, tyre flip"]},
+  {n:'Things at a birthday party',g:'Home & life',t:[
+   "cake, balloons|balloon, presents|present, candles|candle, cards|card, music, games, party hats|party hat",
+   "party bags|party bag, singing, streamers, sweets, pass the parcel, jelly, sausage rolls, banner, crisps, dancing, musical chairs, invitations|invitation",
+   "pin the tail on the donkey, piñata|pinata, bouncy castle, magician, face painting, party popper, party blower|blowers, sandwiches, birthday badge, jelly and ice cream, mini rolls, tablecloth",
+   "sparkler, photo booth, cake stand, loot bag, paper chains, bunting, clown, treasure hunt, cake topper, cake knife, candle snuffer, money box"]},
+  {n:'Things at Christmas',g:'Home & life',t:[
+   "tree, presents|present, santa, turkey, snow, lights, cards|card, stocking",
+   "reindeer, mince pies|mince pie, tinsel, carols|carol, crackers|cracker, baubles|bauble, wreath, chimney, advent calendar, sprouts|brussels sprouts, holly, elf, mistletoe, angel",
+   "yule log, christmas pudding, snowman, sleigh, nativity, star, paper hat, king's speech|queen's speech, gingerbread, eggnog, mulled wine, christmas jumper, tangerine|satsuma, roast potatoes, pigs in blankets",
+   "frankincense, myrrh, wassail, advent wreath, stollen, figgy pudding, yuletide, nutcracker, poinsettia, boxing day, twelfth night, midnight mass, tree skirt, christingle"]},
+  {n:'Parts of the body',g:'Home & life',t:[
+   "head, arm, leg, hand, foot, eye, nose, mouth",
+   "ear, finger, toe, knee, elbow, shoulder, back, neck, tongue, tooth|teeth, hair, stomach, chest, hip, ankle, wrist, thumb",
+   "eyebrow, eyelash, chin, forehead, cheek, lip, heel, calf, thigh, shin, palm, knuckle, nostril, armpit, spine, rib, skull",
+   "sternum, clavicle|collarbone, tibia, fibula, femur, humerus, patella|kneecap, scapula|shoulder blade, coccyx|tailbone, philtrum, uvula, nape, instep, achilles tendon, septum, temple, earlobe, bicep|biceps"]},
+  {n:'Jobs',g:'Home & life',t:[
+   "doctor, teacher, nurse, police officer|policeman|policewoman|police, firefighter|fireman, builder, chef, farmer",
+   "dentist, vet, plumber, electrician, pilot, driver, postman|postie|postal worker, lawyer, waiter, hairdresser, mechanic, scientist, engineer, soldier, cleaner, carpenter, baker, butcher, actor, artist, writer",
+   "accountant, architect, barista, bricklayer, butler, cashier, coastguard, florist, geologist, gardener, journalist, librarian, lifeguard, optician, paramedic, pharmacist, physiotherapist, plasterer, roofer, surveyor, tailor, taxi driver, translator",
+   "cartographer, chimney sweep, cooper, farrier, fletcher, glazier, lexicographer, locksmith, milliner, thatcher, wheelwright, apothecary, blacksmith, cobbler, taxidermist, stenographer, sommelier, pathologist"]},
+  {n:'Items of clothing',g:'Home & life',t:[
+   "shirt, trousers, jeans, dress, skirt, jumper, socks, coat",
+   "t-shirt|tshirt, shorts, hoodie, jacket, tie, scarf, gloves, pyjamas, underwear, leggings, tracksuit, cardigan, blouse, suit, swimsuit, raincoat, hat",
+   "waistcoat, dungarees, kilt, dressing gown, leotard, tights, cravat, blazer, poncho, anorak, parka, kimono, sari, boiler suit|overalls, bodysuit, tuxedo, tank top, polo shirt, gilet",
+   "culottes, jodhpurs, cummerbund, pinafore, tabard, smock, cape, shawl, kaftan, sarong, cagoule, bolero, jerkin, doublet, pantaloons, plus fours|plus-fours, tunic, stole, salopettes"]},
+  {n:'Types of shoe',g:'Home & life',t:[
+   "trainers|sneakers, boots, sandals, slippers, heels|high heels, flip flops, wellies|wellingtons, football boots",
+   "loafers, brogues, plimsolls, ballet pumps|pumps, flats, clogs, crocs, sliders, uggs|ugg boots, hiking boots|walking boots, school shoes, ankle boots, platforms, wedges, espadrilles",
+   "stilettos, moccasins, oxfords, derbies, mules, kitten heels, snow boots, cowboy boots, roller skates, ice skates, ski boots, cleats, spikes, jelly shoes, deck shoes|boat shoes",
+   "galoshes, brothel creepers|creepers, winklepickers, pattens, sabots, mary janes, slingbacks, chelsea boots, chukka boots, desert boots, waders, geta, huaraches, pointe shoes"]},
+  {n:'Types of hat',g:'Home & life',t:[
+   "cap, beanie, top hat, cowboy hat, bowler hat|bowler, helmet, sun hat|sunhat, bobble hat",
+   "baseball cap, trilby, flat cap, fedora, bucket hat, beret, party hat, wizard hat, crown, chef's hat, tiara, turban, hard hat, panama",
+   "stetson, fez, sombrero, deerstalker, balaclava, boater, pillbox hat|pillbox, fascinator, mortarboard, busby, bearskin, mitre, homburg, pith helmet, tam o'shanter|tam, ushanka",
+   "kippah|yarmulke, tricorn, bicorne, kepi, glengarry, snood, cloche, tarboosh, coolie hat, akubra, balmoral, shako, sou'wester, zucchetto, pork pie hat"]},
+  {n:'Things in a toy box',g:'Fun & culture',t:[
+   "teddy, doll, lego, car, ball, puzzle, kite, trains",
+   "building blocks|blocks, play doh|playdough, action figure, board game, skipping rope, yo yo, scooter, bike, jigsaw, rocking horse, spinning top|top, slinky, crayons, rubik's cube|rubiks cube",
+   "tamagotchi, furby, etch a sketch, stickle bricks, meccano, hot wheels, barbie, sylvanian families, fidget spinner, marbles, jacks, kaleidoscope, pogo stick, space hopper, hula hoop",
+   "cup and ball|ball and cup, diabolo, jack in the box, tiddlywinks, spirograph, view master, cat's cradle, pop up book, hobby horse, wooden train, pea shooter, clackers"]},
+  {n:'School subjects',g:'Home & life',t:[
+   "maths|math, english, science, history, geography, art, pe|physical education, music",
+   "french, spanish, drama, biology, chemistry, physics, ict|computing, re|religious education, dt|design and technology, german, latin, pshe, citizenship, food technology|home economics",
+   "economics, psychology, sociology, statistics, politics, philosophy, business studies, media studies, classics, further maths, textiles, woodwork, metalwork, photography, dance",
+   "ancient greek|greek, astronomy, geology, anthropology, archaeology, law, accounting, ethics, rhetoric, calligraphy, shorthand, needlework, scripture"]},
+  {n:'Things in an office',g:'Places & travel',t:[
+   "desk, computer, chair, printer, phone, pen, paper, stapler",
+   "keyboard, mouse, monitor|screen, filing cabinet, notebook, calculator, whiteboard, hole punch, paper clips|paper clip, post it notes|post its, folder, water cooler, photocopier|copier",
+   "lanyard, shredder, swivel chair, desk tidy, highlighter, label maker, envelope, in tray, laminator, projector, conference phone, meeting room",
+   "franking machine, rolodex, blotter, date stamp|stamp, bulldog clip, treasury tag, lever arch file, dictaphone, fax machine, paper trimmer, ink pad, letter opener"]},
+  {n:'Things in a supermarket',g:'Places & travel',t:[
+   "trolley, basket, checkout|till, fruit, vegetables, bread, milk, shelves",
+   "self checkout, carrier bag|bag for life, bags, deli counter, bakery, freezer aisle, meal deal, security guard, receipt, loyalty card|clubcard|nectar card, reduced section, tannoy",
+   "yellow sticker, scanner, barcode, cashier, trolley token|pound coin, bag packer, price gun, shelf stacker, queue, pick and mix, hot food counter, flower stand",
+   "weighing scales, pallet, cage trolley, end cap, loss leader, chiller cabinet, dump bin, wet floor sign, shelf wobbler, price tag"]},
+  {n:'Things at a restaurant',g:'Places & travel',t:[
+   "menu, table, chair, waiter, food, plate, fork, knife",
+   "waitress, bill, tip, napkin, glass, starter, main course|main, dessert, chef, kitchen, wine list, candle, reservation|booking",
+   "sommelier, maitre d, tablecloth, bread basket, condiments, cutlery, specials board, high chair, cloakroom, tasting menu, bar, reservation book",
+   "amuse bouche, pass, cover charge, digestif, tableside service, brigade, commis chef, silver service, dumb waiter, finger bowl, sorbet, petit fours"]},
+  {n:'Things at an airport',g:'Places & travel',t:[
+   "plane|aeroplane, passport, suitcase, check in, security, gate, pilot, luggage",
+   "boarding pass, departures, arrivals, duty free, baggage reclaim, runway, customs, terminal, trolley, cabin crew, lounge, control tower",
+   "x-ray machine|scanner, conveyor belt|carousel, jet bridge, hangar, taxiway, windsock, passport control, hold luggage, fast track, immigration, baggage handler, priority boarding, tarmac",
+   "apron, de-icing, pushback tug, fuel bowser, air traffic controller, transit, slot, cargo hold, emergency exit, landing gear"]},
+  {n:'Things at a train station',g:'Places & travel',t:[
+   "train, platform, ticket, track, timetable, bench, waiting room, guard",
+   "ticket barrier|barrier|ticket gate, ticket machine, departure board, tannoy|announcement, café|cafe, newsagent, footbridge, signal, conductor, luggage trolley, toilets, clock",
+   "station master, level crossing, buffers|buffer stop, lost property, left luggage, concourse, subway|underpass, signal box, yellow line, porter, information desk, platform number",
+   "points, bay platform, catenary, overhead lines, turnstile, ticket inspector, mind the gap, rolling stock, goods shed, water tower, semaphore, footplate"]},
+  {n:'Things in a hospital',g:'Places & travel',t:[
+   "doctor, nurse, bed, ambulance, patient, medicine, ward, stethoscope",
+   "surgeon, receptionist, waiting room, wheelchair, operating theatre, x-ray, bandage, crutches, thermometer, drip, a&e|emergency room, pharmacy",
+   "porter, stretcher, defibrillator, scalpel, ecg|heart monitor, cannula, syringe, theatre gown|gown, scrubs, mri scanner|mri, trolley, sluice",
+   "radiographer, anaesthetist, bedpan, ventilator, autoclave, catheter, pulse oximeter, incubator, gurney, sphygmomanometer, triage"]},
+  {n:'Things at a funfair',g:'Places & travel',t:[
+   "rollercoaster|roller coaster, ferris wheel, candy floss, carousel, helter skelter, dodgems|bumper cars, hook a duck, big wheel",
+   "ghost train, waltzer, teacups, coconut shy, chair o plane|chairoplane, toffee apple, hot dogs|hot dog, prizes, tickets, tombola, swing boats, popcorn, goldfish",
+   "log flume, haunted house, hall of mirrors, test your strength, penny falls, penny arcade, barker, generator, ring toss|hoopla, shooting gallery, speed ramp",
+   "gallopers, steam organ, cakewalk, wall of death, fun house, bingo caller, crazy mouse, speedway"]},
+  {n:'Things on a boat',g:'Places & travel',t:[
+   "sail, anchor, mast, deck, captain, life jacket, oar, rope",
+   "engine, flag, cabin, hull, bow, stern, compass, wheel|helm, crew, lifebelt, life raft, funnel, porthole, galley",
+   "rudder, keel, rigging, bilge, tiller, port, starboard, gangway, bunk, buoy, boom, winch, mooring line|painter, fender",
+   "bowsprit, capstan, binnacle, halyard, jib, spinnaker, crow's nest|crows nest, windlass, transom, forecastle, gunwale, sextant, bulkhead, davit"]},
+  {n:'Things on a farm',g:'Nature & animals',t:[
+   "tractor, cow, sheep, pig, horse, chicken, barn, field",
+   "farmer, hay, goat, duck, fence, gate, farmhouse, combine harvester, scarecrow, trough, eggs, sheepdog",
+   "silo, hay bale|bale, pigsty, hen house|chicken coop, milking parlour, plough, stable, paddock, sprayer, trailer, dry stone wall, muck spreader",
+   "threshing machine, baler, dairy, byre, cattle grid, harrow, seed drill, haystack, hayloft, windpump, shearing shed, slurry pit"]},
+  {n:'Things in a forest',g:'Nature & animals',t:[
+   "trees|tree, leaves|leaf, squirrel, deer, mushrooms|mushroom, birds|bird, path, owl",
+   "fox, badger, moss, logs|log, acorn, pine cone, stream, hedgehog, bluebells|bluebell, ferns|fern, rabbit, branch, bear, wolf",
+   "toadstool, bracken, woodpecker, undergrowth, canopy, clearing, lichen, rotting log, tree stump|stump, fallen leaves, pine needles, bats",
+   "forest floor, mycelium, foxglove, wild garlic, dormouse, nightjar, tawny owl, lynx, stag beetle, glade, coppice, understorey"]},
+  {n:'Things in space',g:'Nature & animals',t:[
+   "sun, moon, stars|star, planets|planet, rocket, astronaut, earth, comet",
+   "mars, jupiter, saturn, asteroid, galaxy, satellite, space station, meteor, black hole, venus, alien, telescope, milky way, orbit",
+   "nebula, supernova, mercury, neptune, uranus, pluto, space shuttle, constellation, solar system, rover, probe, eclipse, quasar, big bang",
+   "pulsar, exoplanet, dark matter, event horizon, magnetar, kuiper belt, oort cloud, red giant, white dwarf, neutron star, accretion disc, heliosphere, titan, europa"]},
+  
+  /* Food & drink */
+  {n:'Vegetables',g:'Food & drink',t:[
+   "carrot, potato, onion, peas|pea, broccoli, tomato, cucumber, cabbage",
+   "sweetcorn|corn, cauliflower, lettuce, spinach, leek, mushroom, pepper, courgette, celery, parsnip, sprouts|brussels sprouts, beans, turnip, swede",
+   "aubergine|eggplant, beetroot, radish, asparagus, kale, artichoke, squash, pumpkin, fennel, sweet potato, runner beans|runner bean, shallot, garlic, spring onion, rocket, watercress",
+   "kohlrabi, salsify, celeriac, okra, pak choi|bok choy, romanesco, samphire, cardoon, jerusalem artichoke, mangetout, chicory, endive, mooli, tatsoi, chard, rhubarb"]},
+  {n:'Cheeses',g:'Food & drink',t:[
+   "cheddar, brie, mozzarella, parmesan, feta, stilton, edam, gouda",
+   "camembert, halloumi, red leicester, wensleydale, mascarpone, ricotta, cream cheese, swiss|emmental, cottage cheese, blue cheese, goat's cheese|goats cheese, gruyère|gruyere, double gloucester, cheshire",
+   "manchego, gorgonzola, roquefort, pecorino, havarti, provolone, jarlsberg, lancashire, monterey jack, paneer, cheese strings|string cheese, boursin, port salut, taleggio, cornish yarg",
+   "epoisses, comté|comte, reblochon, appenzeller, raclette, burrata, limburger, caerphilly, stinking bishop, vacherin, munster, fontina, leerdammer, saint agur"]},
+  {n:'Biscuits',g:'Food & drink',t:[
+   "digestive, rich tea, bourbon, custard cream, hobnob, jammie dodger, shortbread, ginger nut",
+   "oreo, cookie, malted milk, jaffa cake, garibaldi, fig roll, nice, party rings, wafer, viennese whirl, flapjack",
+   "biscotti, amaretti, langue de chat, lotus biscoff|biscoff, florentine, gingerbread man|gingerbread, melting moment, bath oliver, ginger snap, cream cracker, water biscuit, oatcake",
+   "lincoln, bandit, taxi, trio, blue riband, tea finger, shrewsbury, brandy snap, tuile, speculoos, stroopwafel"]},
+  {n:'Sandwich fillings',g:'Food & drink',t:[
+   "cheese, ham, tuna, egg, chicken, bacon, tomato, cucumber",
+   "blt, egg mayo|egg mayonnaise, coronation chicken, prawn, cheese and pickle, peanut butter, jam, ham and cheese, turkey, salad, lettuce, sausage, beef, tuna mayo",
+   "pastrami, brie and cranberry, falafel, hummus, avocado, smoked salmon, bacon and egg, cheese and onion, crisps, fish fingers|fish finger, chip butty|chips, corned beef, salad cream, marmite",
+   "banana, nutella, peanut butter and jelly, cheese and marmite, spam, liver pâté|pate, potted shrimp, jam and cream, ploughman's|ploughmans, bacon and banana, sardines, ham and mustard, egg and cress"]},
+  {n:'Drinks',g:'Food & drink',t:[
+   "water, tea, coffee, juice, milk, coke, lemonade, orange juice",
+   "hot chocolate, squash, fanta, sprite, pepsi, smoothie, milkshake, cordial, cola, ginger beer, apple juice, ribena, iced tea, tonic",
+   "irn bru, dr pepper, lucozade, red bull, kombucha, bitter lemon, ginger ale, root beer, cream soda, tango, vimto, mocha, latte, cappuccino, americano",
+   "horlicks, ovaltine, bovril, barley water, lassi, ayran, kefir, yerba mate, chai, sarsaparilla, dandelion and burdock, horchata, bubble tea|boba"]},
+  {n:'Sweets',g:'Food & drink',t:[
+   "chocolate, haribo, lollipop, jelly babies|jelly baby, wine gums|wine gum, mints|mint, fudge, toffee",
+   "gobstopper, sherbet, liquorice|licorice, fruit pastilles|pastilles, polo, skittles, starburst, maltesers, smarties, bonbons, humbugs|humbug, flying saucers",
+   "sherbet dip dab|dip dab, refreshers, black jacks, fruit salad, rhubarb and custard, pear drops, cola bottles|cola bottle, jelly beans|jelly bean, candy canes|candy cane, marshmallow, turkish delight, nougat, rock, aniseed balls",
+   "sugar mice, barley sugar, edinburgh rock, bullseyes, everton mints, pontefract cakes, kendal mint cake, parma violets, fizz wiz, love hearts, drumstick, fruit gums"]},
+  {n:'Herbs and spices',g:'Food & drink',t:[
+   "salt, pepper, basil, parsley, mint, thyme, rosemary, cinnamon",
+   "oregano, paprika, chilli powder|chilli, cumin, coriander, turmeric, ginger, nutmeg, garlic, sage, dill, cloves|clove, bay leaf|bay leaves, mixed herbs",
+   "cardamom, saffron, fennel seeds|fennel, mustard seeds|mustard, star anise, allspice, chives, tarragon, cayenne, curry powder, garam masala, mace, vanilla, lemongrass, marjoram",
+   "sumac, asafoetida, fenugreek, za'atar|zaatar, caraway, juniper, lovage, sorrel, chervil, galangal, nigella, ras el hanout, annatto, epazote, lavender"]},
+  {n:'Chocolate bars',g:'Food & drink',t:[
+   "mars, snickers, twix, kitkat, dairy milk, bounty, galaxy, milky way",
+   "aero, wispa, crunchie, double decker, flake, twirl, toblerone, ripple, picnic, lion bar|lion, curly wurly, freddo, boost, star bar",
+   "yorkie, drifter, topic, fudge, fry's chocolate cream|fry's, caramac, milkybar|milky bar, tracker, penguin, kinder bueno|bueno, lindor, ferrero rocher, terry's chocolate orange|chocolate orange, after eight",
+   "texan, spira, cadbury caramel|caramel, banjo, wagon wheel, secret, fuse, marathon, bournville, daim, chomp, time out"]},
+  {n:'Things you put on toast',g:'Food & drink',t:[
+   "butter, jam, marmite, peanut butter, beans, cheese, eggs, honey",
+   "marmalade, nutella, avocado, scrambled egg, bacon, tomato, banana, cream cheese",
+   "lemon curd, poached egg, mushrooms, smoked salmon, hummus, ricotta, golden syrup, vegemite, cinnamon sugar, sardines, anchovy paste, marmite and cheese",
+   "bovril, potted meat, cheese and pickle, dripping, fish paste, gentleman's relish, tahini, lemon and sugar, banana and honey, bloater paste, welsh rarebit"]},
+  {n:'Types of bread',g:'Food & drink',t:[
+   "white, brown, wholemeal, sourdough, baguette, naan, pitta|pita, bagel",
+   "ciabatta, focaccia, rye, tortilla, roll|bread roll, bap, bun, cob, brioche, crumpet, muffin, soda bread, granary, flatbread, chapati",
+   "bloomer, cottage loaf, farmhouse, barm cake|barm, stottie, bannock, matzo|matzah, pumpernickel, challah, panini, lavash, roti, paratha, malt loaf, tiger loaf",
+   "injera, arepa, bialy, boule, fougasse, grissini, kulcha, pain de campagne, manchet, bara brith, cornbread, teacake, farl, batch, lardy cake"]},
+  {n:'Takeaway foods',g:'Food & drink',t:[
+   "pizza, burger, chips, fish and chips, kebab, chinese, curry, fried chicken",
+   "sushi, nuggets, wrap, hot dog, noodles, tikka masala, naan, spring rolls|spring roll, sweet and sour, pad thai, doner, falafel",
+   "poppadom, bhaji, chow mein, dim sum, katsu curry, ramen, burrito, taco, fajita, nachos, shawarma, jerk chicken, gyros, souvlaki, pakora",
+   "bao, pho, banh mi, bibimbap, laksa, gyoza, tonkatsu, empanada, arancini, poke bowl, khachapuri, kofta"]},
+  
+  /* Nature & animals */
+  {n:'Birds',g:'Nature & animals',t:[
+   "robin, blackbird, pigeon, sparrow, crow, seagull|gull, duck, eagle",
+   "owl, swan, goose, magpie, blue tit|bluetit, wren, starling, pheasant, parrot, penguin, ostrich, flamingo, hawk, peacock, chicken, kingfisher",
+   "woodpecker, heron, kestrel, buzzard, jay, finch|goldfinch|chaffinch, thrush, nightingale, skylark, cuckoo, swallow, puffin, cormorant, albatross, pelican, toucan",
+   "wagtail, dunnock, treecreeper, nuthatch, lapwing|peewit, curlew, oystercatcher, fieldfare, redwing, goldcrest, hoopoe, bittern, osprey, gannet, shag, spoonbill, shearwater, capercaillie, corncrake"]},
+  {n:'Insects and creepy crawlies',g:'Nature & animals',t:[
+   "ant, bee, fly, butterfly, ladybird|ladybug, spider, wasp, beetle",
+   "caterpillar, moth, mosquito, grasshopper, cricket, worm, snail, slug, dragonfly, centipede, woodlouse, flea, cockroach, earwig, praying mantis|mantis",
+   "bumblebee, hornet, firefly, stick insect, cicada, aphid, greenfly, daddy long legs|crane fly, lacewing, termite, tick, louse|lice, millipede, scorpion, tarantula",
+   "mayfly, water boatman, pond skater, silverfish, weevil, stag beetle, click beetle, leafhopper, froghopper, thrips, damselfly, glow worm|glowworm, dung beetle, bluebottle, horsefly"]},
+  {n:'Sea creatures',g:'Nature & animals',t:[
+   "fish, shark, whale, dolphin, crab, octopus, jellyfish, starfish",
+   "seal, lobster, squid, seahorse, turtle, eel, prawn, shrimp, clam, oyster, mussel, stingray, sea lion, walrus",
+   "manta ray, swordfish, narwhal, orca|killer whale, barracuda, anemone|sea anemone, cuttlefish, sea urchin, coral, plankton, krill, hammerhead, porpoise, cod, tuna, salmon, manatee",
+   "nudibranch, sea cucumber, angler fish|anglerfish, pufferfish|puffer fish, wrasse, goby, limpet, barnacle, sea slug, hagfish, lamprey, lionfish, moray eel, dugong, remora, isopod, portuguese man o war|man o war"]},
+  {n:'Wild animals of the UK',g:'Nature & animals',t:[
+   "fox, badger, squirrel, rabbit, deer, hedgehog, mouse, rat",
+   "hare, otter, stoat, weasel, mole, bat, vole, shrew, red squirrel, grey squirrel, seal, pine marten, polecat",
+   "dormouse, water vole, wildcat, red deer, roe deer, fallow deer, muntjac, harvest mouse, pygmy shrew, grass snake, adder, slow worm, natterjack toad, newt, common lizard",
+   "pipistrelle, noctule, bechstein's bat, mink, beaver, wild boar, sika deer, chinese water deer, edible dormouse, grey seal, common seal, bottlenose dolphin, sand lizard, smooth snake, great crested newt"]},
+  {n:'Flowers',g:'Nature & animals',t:[
+   "rose, daisy, tulip, daffodil, sunflower, lily, poppy, bluebell",
+   "lavender, orchid, carnation, buttercup, dandelion, snowdrop, primrose, pansy, violet, marigold, geranium, hyacinth, crocus, lilac, foxglove, iris",
+   "peony, chrysanthemum, hydrangea, jasmine, camellia, magnolia, fuchsia, clematis, honeysuckle, lupin, sweet pea, delphinium, begonia, petunia, cowslip, forget me not|forget-me-not, gerbera, freesia, wisteria, lotus",
+   "aconite, anemone, aster, astilbe, columbine|aquilegia, cosmos, dahlia, gladiolus, hellebore, hollyhock, larkspur, nasturtium, phlox, snapdragon, stock, verbena, zinnia, amaryllis, oleander, protea"]},
+  {n:'Trees',g:'Nature & animals',t:[
+   "oak, pine, birch, willow, apple, maple, palm, ash",
+   "beech, elm, cherry, christmas tree|fir, spruce, sycamore, chestnut, lime, holly, yew, poplar, cedar, eucalyptus, olive, rowan, hawthorn",
+   "hazel, alder, hornbeam, larch, juniper, redwood, sequoia, baobab, mahogany, ebony, teak, plane, walnut, magnolia, elder, blackthorn, monkey puzzle, silver birch",
+   "whitebeam, aspen, field maple, wych elm, crab apple, sweet chestnut, horse chestnut, cypress, banyan, mangrove, jacaranda, ginkgo, tulip tree, tamarind, dawn redwood, bristlecone pine, sessile oak"]},
+  {n:'Farm animals and their young',g:'Nature & animals',t:[
+   "cow, pig, sheep, horse, chicken, goat, duck, donkey",
+   "turkey, goose, llama, alpaca, bull, rooster|cockerel, lamb, calf, piglet, foal, hen, ox, mule, pony",
+   "ram, ewe, sow, boar, heifer, bullock, steer, gander, gosling, kid, highland cow, shire horse, bantam, guinea fowl",
+   "wether, hogget, tup, gelding, stallion, mare, yearling, cob, drake, capon, jersey cow, gloucester old spot, herdwick, soay"]},
+  
+  /* Places & travel */
+  {n:'Cities and towns in the UK',g:'Places & travel',t:[
+   "london, manchester, birmingham, liverpool, leeds, glasgow, edinburgh, cardiff",
+   "bristol, newcastle, sheffield, nottingham, belfast, brighton, oxford, cambridge, york, bath, southampton, leicester, norwich, aberdeen, plymouth",
+   "coventry, derby, hull, stoke, wolverhampton, sunderland, portsmouth, exeter, canterbury, chester, durham, lincoln, inverness, swansea, dundee, carlisle, reading, swindon, bournemouth",
+   "lichfield, ely, wells, truro, salisbury, ripon, st davids, armagh, bangor, stirling, perth, newport, preston, bradford, gloucester, worcester, hereford, winchester, wakefield, peterborough"]},
+  {n:'US states',g:'Places & travel',t:[
+   "california, texas, florida, new york, alaska, hawaii, nevada, arizona",
+   "ohio, georgia, washington, oregon, colorado, utah, illinois, michigan, virginia, montana, alabama, louisiana, massachusetts, pennsylvania, tennessee",
+   "kentucky, indiana, iowa, kansas, missouri, wisconsin, minnesota, maine, vermont, idaho, wyoming, oklahoma, arkansas, mississippi, maryland, nebraska, new mexico, new jersey, connecticut, delaware",
+   "rhode island, new hampshire, north dakota, south dakota, west virginia, north carolina, south carolina"]},
+  {n:'Rivers of the world',g:'Places & travel',t:[
+   "thames, nile, amazon, mississippi, severn, yangtze, danube, ganges",
+   "rhine, seine, tyne, mersey, trent, clyde, congo, volga, tiber, jordan, euphrates, tigris, hudson, colorado, mekong",
+   "avon, tay, tweed, wye, dee, ouse, humber, zambezi, niger, indus, loire, rhone, elbe, oder, po, ebro, tagus, shannon, murray, orinoco, rio grande, yukon, missouri",
+   "dnieper, don, ural, ob, lena, irrawaddy, brahmaputra, limpopo, orange, vistula, douro, guadalquivir, mackenzie, st lawrence, magdalena, paraná|parana"]},
+  {n:'Famous landmarks',g:'Places & travel',t:[
+   "eiffel tower, big ben, statue of liberty, colosseum, taj mahal, great wall of china, pyramids, buckingham palace",
+   "tower bridge, stonehenge, sydney opera house, leaning tower of pisa, golden gate bridge, mount rushmore, london eye, tower of london, empire state building, brandenburg gate, acropolis, christ the redeemer, machu picchu, petra, niagara falls, grand canyon",
+   "sagrada familia, burj khalifa, angkor wat, forbidden city, blue mosque|hagia sophia, notre dame, arc de triomphe, trevi fountain, atomium, kremlin, red square, alhambra, versailles, neuschwanstein, hoover dam, space needle, cn tower, uluru|ayers rock, table mountain, giant's causeway, edinburgh castle",
+   "mont saint michel, meteora, chichen itza, moai, terracotta army, borobudur, bagan, sigiriya, stari most, cliffs of moher, white cliffs of dover, hadrian's wall, skara brae, fingal's cave, ha long bay, victoria falls, ponte vecchio, bridge of sighs"]},
+  {n:'Currencies of the world',g:'Places & travel',t:[
+   "pound, dollar, euro, yen, rupee, peso, franc, rouble|ruble",
+   "yuan|renminbi, krona, krone, dirham, rand, lira, won, baht, shekel, real, zloty, forint, dinar, rial",
+   "ringgit, rupiah, dong, taka, kyat, riyal, leu, lev, kuna, hryvnia, lari, tenge, som, shilling, kwacha, naira, cedi, birr, kina",
+   "ngultrum, loti, lilangeni, pula, ariary, dalasi, leone, quetzal, lempira, colón|colon, balboa, gourde, guarani, boliviano, bitcoin, tugrik|togrog, manat, afghani, kip, pataca"]},
+  {n:'Languages',g:'Places & travel',t:[
+   "english, french, spanish, german, italian, chinese|mandarin, japanese, arabic",
+   "russian, portuguese, hindi, urdu, welsh, latin, greek, dutch, polish, turkish, korean, swedish, norwegian, danish, irish, scottish gaelic|gaelic",
+   "bengali, punjabi, cantonese, swahili, hebrew, thai, vietnamese, hungarian, czech, finnish, ukrainian, romanian, persian|farsi, tamil, tagalog, indonesian, afrikaans",
+   "basque, catalan, cornish, manx, breton, esperanto, yiddish, maori, hawaiian, sanskrit, zulu, xhosa, amharic, pashto, kurdish, mongolian, icelandic, maltese, latvian, estonian, lithuanian"]},
+  {n:'Seas and oceans',g:'Places & travel',t:[
+   "atlantic, pacific, indian, arctic, mediterranean, north sea, red sea, caribbean",
+   "southern ocean|antarctic, baltic, black sea, dead sea, irish sea, english channel, adriatic, aegean, caspian, tasman, bering, coral sea, sargasso",
+   "celtic sea, barents, labrador, weddell, ross sea, ionian, tyrrhenian, ligurian, arabian sea, south china sea, yellow sea, sea of japan, bay of biscay, gulf of mexico, hudson bay, white sea, kara sea, laptev, bay of bengal",
+   "sea of azov, sea of marmara, sea of okhotsk, beaufort sea, chukchi, solomon sea, java sea, banda sea, timor sea, arafura, philippine sea, andaman sea, sulu, celebes, sea of galilee, aral sea, wadden sea"]},
+  
+  /* Fun & culture */
+  {n:'Board games',g:'Fun & culture',t:[
+   "monopoly, cluedo, scrabble, chess, draughts|checkers, snakes and ladders, ludo, risk",
+   "trivial pursuit, connect 4|connect four, jenga, battleships|battleship, operation, guess who, pictionary, uno, mousetrap|mouse trap, twister, backgammon, dominoes, buckaroo, hungry hippos",
+   "catan|settlers of catan, ticket to ride, carcassonne, pandemic, dobble, articulate, taboo, kerplunk, boggle, othello, go, mastermind, stratego, game of life|the game of life, frustration, downfall",
+   "mahjong, shogi, mancala, nine men's morris, fox and geese, hnefatafl, azul, wingspan, terraforming mars, gloomhaven, dixit, codenames, splendor, 7 wonders, agricola, scotland yard, diplomacy, cranium, kingdomino"]},
+  {n:'Card games',g:'Fun & culture',t:[
+   "poker, snap, solitaire, bridge, rummy, blackjack, go fish, old maid",
+   "patience, whist, cheat, hearts, crazy eights, gin rummy, canasta, cribbage, happy families, beggar my neighbour, pontoon, spit, president, texas hold'em",
+   "baccarat, euchre, spades, pinochle, skat, piquet, newmarket, brag, speed, sevens, golf, nap, napoleon, oh hell",
+   "bezique, ecarte, faro, loo, quadrille, ombre, tarot, tarock, jass, durak, belote, sheepshead, klondike, freecell, spider, canfield, klaverjas"]},
+  {n:'Olympic sports',g:'Fun & culture',t:[
+   "swimming, athletics, gymnastics, cycling, rowing, boxing, tennis, football",
+   "diving, judo, archery, fencing, sailing, weightlifting, hockey, basketball, volleyball, golf, rugby sevens|rugby, table tennis, badminton, equestrian, triathlon, wrestling",
+   "shooting, canoeing|kayaking, taekwondo, handball, modern pentathlon|pentathlon, skateboarding, surfing, climbing|sport climbing, karate, trampolining, synchronised swimming|artistic swimming, water polo, beach volleyball, bmx, marathon, decathlon",
+   "skeleton, curling, luge, bobsleigh|bobsled, biathlon, nordic combined, ski jumping, ice dance, short track, snowboard cross|snowboarding, slalom, breaking, rhythmic gymnastics, race walking, steeplechase, tug of war, polo, croquet"]},
+  {n:'Types of dance',g:'Fun & culture',t:[
+   "ballet, salsa, tango, waltz, disco, hip hop, jive, breakdance",
+   "tap, line dancing, ballroom, foxtrot, cha cha, rumba, samba, flamenco, morris dancing|morris, polka, jitterbug, charleston, macarena, conga, twist, irish dancing",
+   "quickstep, paso doble, lindy hop, can can, bhangra, belly dancing, ceilidh, maypole, square dance, swing, mambo, bachata, merengue, lambada, jig, hornpipe",
+   "tarantella, mazurka, gavotte, minuet, fandango, bolero, kathak, bharatanatyam, haka, hula, pavane, sword dance, strathspey, reel, gangnam style, floss"]},
+  {n:'Famous pairs',g:'Fun & culture',t:[
+   "salt and pepper, fish and chips, bread and butter, tom and jerry, batman and robin, bonnie and clyde, romeo and juliet, ant and dec",
+   "laurel and hardy, simon and garfunkel, cheese and onion, strawberries and cream, bubble and squeak, rock and roll, gin and tonic, jack and jill, hansel and gretel, adam and eve, cain and abel, morecambe and wise, torvill and dean, starsky and hutch",
+   "sonny and cher, hall and oates, ben and jerry, marks and spencer, procter and gamble, rolls and royce, fortnum and mason, gilbert and sullivan, flanders and swann, hale and pace, french and saunders, fry and laurie, mulder and scully, thelma and louise, holmes and watson, wallace and gromit, abbott and costello",
+   "castor and pollux, romulus and remus, bill and ben, flotsam and jetsam, kith and kin, hammer and tongs, sturm und drang, tweedledum and tweedledee, rosencrantz and guildenstern, jekyll and hyde, lock and key, cagney and lacey"]},
+  
+  /* Colours & traits */
+  {n:'Things that are green',g:'Colours & traits',t:[
+   "grass, frog, leaf, tree, peas|pea, lime, cucumber, broccoli",
+   "emerald, kiwi, mint, cabbage, lettuce, crocodile, apple, pickle, avocado, shamrock|clover, parrot, lizard, snake, grapes|grape, spinach",
+   "jade, olive, moss, pistachio, ivy, fern, basil, kale, courgette, asparagus, turtle, praying mantis, chameleon, traffic light",
+   "verdigris, malachite, celadon, chartreuse, absinthe, viridian, sage, seaweed, lichen, pea soup, snooker table|billiard table, bottle glass"]},
+  {n:'Things that are blue',g:'Colours & traits',t:[
+   "sky, sea, ocean, blueberry, jeans, whale, bluebell, water",
+   "sapphire, bluebird, blue tit, cornflower, ice, swimming pool, denim, blue cheese, peacock, kingfisher, blue jay, hydrangea, tanzanite",
+   "lapis lazuli, turquoise, navy, indigo, cobalt, azure, cyan, ultramarine, delft, teal, blue lagoon, blue moon, blue morpho|morpho butterfly, cerulean",
+   "prussian blue, egyptian blue, klein blue, woad, bluebottle, blue poppy, royal blue, periwinkle, electric blue, powder blue"]},
+  {n:'Things that are white',g:'Colours & traits',t:[
+   "snow, milk, clouds|cloud, paper, swan, polar bear, salt, sugar",
+   "ghost, egg, teeth|tooth, rice, wedding dress, flour, snowman, daisy, cotton wool|cotton, sheep, chalk, bone, lily",
+   "ivory, pearl, marshmallow, cream, vanilla, porcelain, lace, coconut, cauliflower, white chocolate, tofu, yoghurt, dove, arctic fox",
+   "alabaster, ermine, meringue, lard, cumulus, bleach, whitewash, snowdrop, barn owl"]},
+  {n:'Things that are black',g:'Colours & traits',t:[
+   "night, coal, cat, tyre|tire, crow, raven, tar, liquorice",
+   "ink, panther, bat, spider, burnt toast, pen, blackboard|chalkboard, bin bag, bin liner, piano keys, black olives, suit, tuxedo, sunglasses, black hole, hearse",
+   "ebony, jet, onyx, obsidian, soot, charcoal, treacle|molasses, caviar, black pudding, squid ink, blackberry, black pepper",
+   "tourmaline, shungite, vantablack, lampblack, pitch, midnight, ink cap, grand piano"]},
+  {n:'Things that are hot',g:'Colours & traits',t:[
+   "sun, fire, oven, soup, tea, coffee, lava, volcano",
+   "iron, hob|cooker, kettle, chilli, curry, radiator, sauna, desert, toaster, summer, hot water, hairdryer|hair dryer, barbecue",
+   "furnace, magma, lightbulb, grill, candle flame, boiling water, steam, jalapeño, wasabi, scotch bonnet, matches, exhaust pipe, campfire, hot tub, heater",
+   "blast furnace, smelter, branding iron, forge, solar flare, geyser, plasma, welding torch, thermal spring, carolina reaper, ghost pepper, nuclear reactor"]},
+  {n:'Things that are sharp',g:'Colours & traits',t:[
+   "knife, needle, scissors, pin, razor, thorn, saw, axe",
+   "sword, tooth|teeth, claw, glass, nail, fork, cactus, pencil, blade, dagger, arrow, broken glass, shark tooth, spike",
+   "scalpel, hypodermic, barbed wire, rose thorn, chisel, spear, tack, drawing pin|thumbtack, shard, stiletto, cheese grater|grater, bayonet, holly leaf|holly, porcupine quill|quill, sea urchin",
+   "katana, razor wire, obsidian blade, stingray barb, rapier, scythe, awl, harpoon, sabre, cleaver, lancet, crampon, talon"]},
+  {n:'Things that are soft',g:'Colours & traits',t:[
+   "pillow, cushion, teddy bear, blanket, cotton wool, feather, fur, sponge",
+   "marshmallow, duvet, cat, kitten, bunny|rabbit, slippers, cloud, velvet, towel, jumper, scarf, cotton, sheepskin, butter",
+   "cashmere, silk, chinchilla, angora, fleece, moleskin, down, mousse, candyfloss, dough, whipped cream, ice cream, memory foam, bean bag, kapok",
+   "eiderdown, mohair, alpaca, vicuña, plush, chenille, flannelette, microfibre, chamois, lambswool, swansdown, marabou"]},
+  {n:'Things that are loud',g:'Colours & traits',t:[
+   "thunder, siren, alarm, drum, explosion, fireworks, trumpet, jet",
+   "rock concert|concert, lion, shouting, horn, car horn, bell, crowd, helicopter, lawnmower, vacuum cleaner|hoover, drill, chainsaw, motorbike, football match, baby crying",
+   "foghorn, megaphone, jackhammer, air horn, volcano eruption|volcano, avalanche, sonic boom, cannon, bagpipes, fire alarm, tannoy, thunderclap, speaker, subwoofer, construction site",
+   "howler monkey, blue whale, krakatoa, pistol shrimp, rocket launch, gunshot, cicada, oilbird, kookaburra, concorde, banshee"]},
+  {n:'Things that are sticky',g:'Colours & traits',t:[
+   "glue, honey, tape, jam, sellotape, toffee, syrup, chewing gum",
+   "sticker, treacle, plasters|plaster, post it, velcro, spider web|cobweb, tar, gum, candyfloss, mud, sugar, caramel, blu tack, jelly, marshmallow, sap",
+   "super glue, duct tape, resin, flypaper, masking tape, double sided tape, pritt stick, rubber cement, gaffer tape, glue gun, putty, toffee apple, gloop, molasses",
+   "pine tar, bird lime, epoxy, araldite, contact adhesive, paste, mucilage, glue trap, pitch, bitumen"]},
+  {n:'Things that are small',g:'Colours & traits',t:[
+   "ant, pea, button, coin, pin, grain of sand, seed, mouse",
+   "ladybird, bead, thimble, stamp, key, crumb, raisin, marble, dice, flea, paperclip, needle, pebble, acorn, peanut",
+   "atom, speck, dust mite, molecule, grain of rice, sesame seed, poppy seed, microchip, pixel, bacteria|bacterium, virus, hummingbird, pygmy shrew, bee hummingbird, pinhead",
+   "quark, electron, nanoparticle, plankton, neutrino, amoeba, tardigrade, dust, photon, proton, dwarf gecko"]},
+  {n:'Things that are heavy',g:'Colours & traits',t:[
+   "elephant, anvil, car, piano, rock, whale, truck, boulder",
+   "bricks|brick, safe, iron, lead, concrete, dumbbell, bus, sofa, fridge, weights, cannon, bowling ball, tank, ship, train",
+   "steel, anchor, bulldozer, crane, lorry, aircraft carrier, tombstone, manhole cover, gold bar, mercury, tungsten, granite, cast iron, shot put, kettlebell",
+   "neutron star, osmium, iridium, uranium, megalith, hippo, mountain, black hole, planet, sumo wrestler, locomotive"]},
+  {n:'Things that are tall',g:'Colours & traits',t:[
+   "giraffe, tree, skyscraper, tower, mountain, ladder, building, lamppost",
+   "eiffel tower, big ben, lighthouse, crane, giant, basketball player, flagpole, windmill, pylon, redwood, church spire|spire, chimney, cliff, waterfall, stilts",
+   "burj khalifa, the shard|shard, space needle, cn tower, mast, wind turbine, minaret, obelisk, totem pole, telegraph pole, ostrich, sequoia, bamboo, sunflower, silo",
+   "everest, k2, olympus mons, tokyo skytree, empire state, willis tower, petronas towers, shanghai tower, taipei 101, sears tower, hyperion"]}
+  );
+  
+  /* Bigger answer lists for the original categories (appended tier by tier) */
+  var MORE={
+  'Things you find in a home':[
+   "door, window, stairs, shelf, washing machine, light, bin",
+   "dishwasher, tumble dryer, vacuum cleaner|hoover, iron, fireplace, sideboard, coffee table, doorbell, letterbox, houseplant|plant",
+   "thermostat, skirting board, banister, door handle, dining table, step ladder, clothes airer, router|wifi router, carbon monoxide detector",
+   "gas meter, electricity meter, ceiling rose, picture rail, door knocker, cornice, boiler flue, fanlight, lintel, newel post"],
+  'Things in a kitchen':[
+   "cupboard, worktop, drawer, dishcloth",
+   "grill, kitchen scales, jug, baking tray, wooden spoon, mixing bowl, tupperware, lid",
+   "blender, food processor, slow cooker, air fryer, rice cooker, bread maker, juicer, pressure cooker",
+   "pastry brush, skewer, meat tenderiser, bain marie, mezzaluna, madeleine tin, cake tin, salad spinner, cheese knife"],
+  'Things in a bathroom':[
+   "",
+   "toilet seat, shower gel, hand wash, hairbrush, comb, nail clippers, bath towel, hand towel, cabinet",
+   "bath toys, rubber duck, cotton pads, tweezers, hair dryer, electric toothbrush, shower head, soap dish, toothbrush holder",
+   "u bend, grout, shower tray, shaving foam, overflow, bath panel, shower mixer, tooth mug, nail brush, bath tray"],
+  'Things in a garage or shed':[
+   "bucket, broom, torch, gloves",
+   "tyre, jack, oil, bike pump, garden fork, shears, watering can, bin bags",
+   "lawn edger, hedge trimmer, leaf blower, pressure washer, vice grips, work light, fuel can, sack truck, tool chest",
+   "tenon saw, router, belt sander, bench grinder, lathe, mitre block, plumb bob, feeler gauge, torque wrench, pneumatic drill"],
+  'Fruits':[
+   "clementine",
+   "tangerine, satsuma, blackcurrant, date",
+   "mandarin, cantaloupe, honeydew melon|honeydew, bilberry, mulberry, elderberry, loganberry, jackfruit, plantain, star fruit|starfruit, prickly pear",
+   "ugli fruit, physalis|cape gooseberry, longan, mangosteen, pomelo, soursop, custard apple, cherimoya, jujube, salak, durian, feijoa, tayberry, boysenberry, sloe"],
+  'Animals at the zoo':[
+   "polar bear",
+   "ostrich, buffalo, lynx, jaguar, puma, koala, emu",
+   "warthog, wildebeest, antelope, gazelle, bison, llama, alpaca, yak, ibex, mongoose, hyena",
+   "aye aye, fossa, kinkajou, coati, dik dik, kudu, oryx, bongo, takin, babirusa, numbat, quoll, echidna, platypus, bilby"],
+  'Things that are red':[
+   "santa",
+   "heart, fire, wine, lava, flame, sunset, blush, rash",
+   "cardinal, cockscomb, red panda, rhubarb, red cabbage, red onion, kidney bean",
+   "carnelian, cinnabar, rust, rosewood, burgundy, claret, cerise, maroon, magenta, oxblood"],
+  'Things that are round':[
+   "earth, football, bowl, saucer",
+   "plant pot, pancake, cookie, record, tin lid, roulette wheel",
+   "snowball, cannonball, pearl, eyeball, planet, pumpkin",
+   "armillary sphere, orrery, gobstopper, ouroboros, astrolabe"],
+  'Things that fly':[
+   "crow, swan",
+   "goose, stork, bumblebee, ladybird, duck, sparrow, robin",
+   "biplane, seaplane, spaceship, concorde, falcon, swift",
+   "condor, albatross, harrier, osprey, swallow, red kite, sailplane"],
+  'Pizza toppings':[
+   "",
+   "ham and pineapple, margherita, red onion, extra cheese, red pepper, green pepper",
+   "black olives, green olives, sundried tomatoes, roast chicken, meatballs, shredded beef, courgette, asparagus",
+   "gorgonzola, smoked cheese, mortadella, pancetta, caramelised onions, truffle oil, pistachio, ricotta"],
+  'Types of pasta':[
+   "",
+   "tagliolini, fideo, gemelli, elbow macaroni, mafalde, rotelle",
+   "lasagnette, scialatielli, busiate, calamarata, malloreddus, maltagliati, mezzelune, fusilli lunghi",
+   "capunti, corzetti, culurgiones, fileja, ricciolini, sagnarelli, testaroli, tortiglioni, trenette, chitarra"]
+  };
+  /* Groups for the original categories; new ones carry their own g */
+  var OLDG={
+   'Things you find in a home':'Home & life','Things in a kitchen':'Home & life','Things in a bathroom':'Home & life','Things in a garage or shed':'Home & life',
+   'Things in a classroom or school bag':'Home & life','Things in a handbag or pockets':'Home & life','Things in a toolbox':'Home & life','Things you do in the morning':'Home & life',
+   'Things you pack for a holiday':'Places & travel','Countries in Europe':'Places & travel','Capital cities':'Places & travel','Things at the seaside':'Places & travel','Things in a park':'Places & travel','Things with wheels':'Places & travel',
+   'Fruits':'Food & drink','Pizza toppings':'Food & drink','Types of pasta':'Food & drink','Ice cream flavours':'Food & drink','Breakfast foods':'Food & drink',
+   'Animals at the zoo':'Nature & animals','Things that fly':'Nature & animals','Dog breeds':'Nature & animals',
+   'Sports played with a ball':'Fun & culture','Musical instruments':'Fun & culture','Things at a wedding':'Fun & culture',
+   'Things that are red':'Colours & traits','Things that are round':'Colours & traits','Things that are cold':'Colours & traits','Things that are yellow':'Colours & traits'
+  };
+
+  /* ---------- Data wiring ---------- */
+
+  BANK.forEach(function (c) {
+    var m = MORE[c.n];
+    if (!m) return;
+    c.t = c.t.map(function (s, i) { return m[i] && m[i].trim() ? s + ', ' + m[i] : s; });
+  });
+  BANK.forEach(function (c) {
+    if (c.g) return;
+    if (c.pre) c.g = 'Starts with';
+    else if (/^Words that rhyme/.test(c.n)) c.g = 'Rhymes';
+    else c.g = OLDG[c.n] || 'Home & life';
+  });
+
+  var ROUND_OPTIONS = [3, 5, 8, 10];
+  var SECS_OPTIONS = [30, 45, 60, 90];
+  var CHRONO_COST = 20;
+  var JOKER_COST = 30;
+  var STARTING_COINS = 100;
+
+  function has(obj, k) { return Object.prototype.hasOwnProperty.call(obj, k); }
+
+  /* ---------- Matching ---------- */
+
+  function stem(w) {
+    if (w.length > 4 && /ies$/.test(w)) return w.slice(0, -3) + 'y';
+    if (w.length > 3 && /(ch|sh|ss|x|z)es$/.test(w)) return w.slice(0, -2);
+    if (w.length > 3 && /s$/.test(w) && !/(ss|us|is)$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+
+  function norm(s) {
+    s = String(s).toLowerCase();
+    if (s.normalize) s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    s = s.replace(/&/g, ' and ').replace(/[’']/g, '').replace(/[^a-z0-9 \-]/g, ' ')
+         .replace(/-/g, ' ').replace(/\s+/g, ' ').trim();
+    s = s.replace(/^(a|an|the) /, '');
+    var w = s.split(' ');
+    w[w.length - 1] = stem(w[w.length - 1]);
+    return w.join(' ');
+  }
+
+  /* Each tier string is "a, b|alias, c". The first alias is the label everyone sees. */
+  function labelsOf(ci, ti) {
+    return BANK[ci].t[ti].split(',').map(function (e) { return e.split('|')[0].trim(); }).filter(Boolean);
+  }
+
+  var idxCache = {};
+  function getIndex(ci) {
+    if (idxCache[ci]) return idxCache[ci];
+    var idx = { keys: [], byKey: {}, noSpace: {} };
+    BANK[ci].t.forEach(function (str, ti) {
+      str.split(',').forEach(function (entry) {
+        var aliases = entry.split('|').map(function (a) { return a.trim(); }).filter(Boolean);
+        if (!aliases.length) return;
+        var label = aliases[0], key = 'k:' + norm(label);
+        aliases.forEach(function (a) {
+          var nk = norm(a);
+          if (!has(idx.byKey, nk)) {
+            idx.byKey[nk] = { key: key, label: label, tier: ti + 1 };
+            idx.keys.push(nk);
+          }
+        });
+      });
+    });
+    idx.keys.forEach(function (k) {
+      var s = k.replace(/ /g, '');
+      if (!has(idx.noSpace, s)) idx.noSpace[s] = idx.byKey[k];
+    });
+    idxCache[ci] = idx;
+    return idx;
+  }
+
+  function lev(a, b) {
+    var m = a.length, n = b.length, i, j;
+    if (Math.abs(m - n) > 2) return 9;
+    var prev = [], cur;
+    for (j = 0; j <= n; j++) prev[j] = j;
+    for (i = 1; i <= m; i++) {
+      cur = [i];
+      for (j = 1; j <= n; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      }
+      prev = cur;
+    }
+    return prev[n];
+  }
+
+  function judge(ci, raw) {
+    var text = String(raw).trim().replace(/\s+/g, ' ');
+    var nk = norm(text);
+    if (nk.length < 2) return { status: 'empty' };
+    var cat = BANK[ci];
+    if (cat.ban && nk === norm(cat.ban)) return { status: 'banned' };
+    if (cat.pre && nk.replace(/ /g, '').indexOf(cat.pre) !== 0) return { status: 'prefix', pre: cat.pre };
+    var idx = getIndex(ci), compact = nk.replace(/ /g, '');
+    var hit = has(idx.byKey, nk) ? idx.byKey[nk] : (has(idx.noSpace, compact) ? idx.noSpace[compact] : null);
+    var fuzzy = false;
+    if (!hit && nk.length >= 5) {
+      var lim = nk.length >= 9 ? 2 : 1, best = null, bd = 99;
+      idx.keys.forEach(function (k) {
+        if (k.charAt(0) !== nk.charAt(0)) return;
+        var d = lev(nk, k);
+        if (d <= lim && d < bd) { bd = d; best = idx.byKey[k]; }
+      });
+      if (best) { hit = best; fuzzy = true; }
+    }
+    if (hit) return { status: 'ok', key: hit.key, label: hit.label, tier: hit.tier, fuzzy: fuzzy, text: text };
+    return { status: 'ok', key: 'u:' + nk, label: text, tier: 0, fuzzy: false, text: text };
+  }
+
+  /* ---------- State and persistence ---------- */
+
+  var STORE_KEY = 'rarefight:game';
+  var PHASES = ['setup', 'ready', 'turn', 'pass', 'reveal', 'final'];
+
+  function defaultCfg() {
+    return { names: ['', ''], rounds: 5, secs: 45, clash: true, sound: true, packs: GROUPS.slice() };
+  }
+  function freshState() {
+    return { phase: 'setup', cfg: defaultCfg(), coins: [STARTING_COINS, STARTING_COINS],
+             round: 0, pool: [], cur: null, pass: null, totals: [0, 0], history: [] };
+  }
+
+  var state = freshState();
+
+  function save() {
+    try { window.localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* Private Browsing */ }
+  }
+
+  function isCat(i) { return typeof i === 'number' && i >= 0 && i < BANK.length && i % 1 === 0; }
+  function isPair(a) { return Array.isArray(a) && a.length === 2; }
+
+  function validRound(cur) {
+    return cur && typeof cur === 'object' && isCat(cur.ci) &&
+      isPair(cur.answers) && Array.isArray(cur.answers[0]) && Array.isArray(cur.answers[1]) &&
+      (cur.turn === 0 || cur.turn === 1);
+  }
+
+  function validGame(s) {
+    if (typeof s.round !== 'number' || !isPair(s.totals) || !Array.isArray(s.pool) || !Array.isArray(s.history)) return false;
+    if (!s.pool.every(isCat)) return false;
+    if (!s.history.every(function (h) { return h && isCat(h.ci) && isPair(h.rows) && isPair(h.rt); })) return false;
+    if (s.phase === 'final') return true;
+    return validRound(s.cur);
+  }
+
+  function load() {
+    var raw = null, s;
+    try { raw = window.localStorage.getItem(STORE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    try { s = JSON.parse(raw); } catch (e) { return; }
+    if (!s || typeof s !== 'object') return;
+
+    var d = freshState();
+    var sc = s.cfg && typeof s.cfg === 'object' ? s.cfg : {};
+    if (Array.isArray(sc.names)) d.cfg.names = [String(sc.names[0] || ''), String(sc.names[1] || '')];
+    if (ROUND_OPTIONS.indexOf(sc.rounds) >= 0) d.cfg.rounds = sc.rounds;
+    if (SECS_OPTIONS.indexOf(sc.secs) >= 0) d.cfg.secs = sc.secs;
+    if (typeof sc.clash === 'boolean') d.cfg.clash = sc.clash;
+    if (typeof sc.sound === 'boolean') d.cfg.sound = sc.sound;
+    if (Array.isArray(sc.packs)) {
+      var packs = sc.packs.filter(function (g) { return GROUPS.indexOf(g) >= 0; });
+      if (packs.length) d.cfg.packs = packs;
+    }
+    if (isPair(s.coins)) d.coins = [Math.max(0, +s.coins[0] || 0), Math.max(0, +s.coins[1] || 0)];
+
+    if (PHASES.indexOf(s.phase) > 0 && validGame(s)) {
+      d.phase = s.phase;
+      d.round = s.round;
+      d.pool = s.pool;
+      d.cur = s.cur;
+      d.pass = s.pass && typeof s.pass === 'object' ? s.pass : null;
+      d.totals = [+s.totals[0] || 0, +s.totals[1] || 0];
+      d.history = s.history;
+      if (d.cur) {
+        if (!isPair(d.cur.adj)) d.cur.adj = [{}, {}];
+        if (!isPair(d.cur.hints)) d.cur.hints = [[], []];
+        if (!Array.isArray(d.cur.left)) d.cur.left = [];
+      }
+      if (d.phase === 'turn') {
+        /* A clock can't resume mid-turn, so that player starts their turn again from nothing. */
+        var p = (d.round + d.cur.turn) % 2;
+        d.cur.answers[p] = [];
+        if (d.cur.turn === 0) d.phase = 'ready';
+        else { d.phase = 'pass'; d.pass = { to: p }; }
+      }
+      if (d.phase === 'pass' && !d.pass) d.pass = { to: d.cur.turn === 0 ? (d.round + 1) % 2 : -1 };
+    }
+    state = d;
+  }
+
+  function nm(p) { return (state.cfg.names[p] || '').trim() || ('Player ' + (p + 1)); }
+  function cls(p) { return p === 0 ? 'red' : 'blue'; }
+  function cornerName(p) { return p === 0 ? 'Red corner' : 'Blue corner'; }
+  function who(t) { return (state.round + t) % 2; }
+
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = a[i];
+      a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /* ---------- Sound ---------- */
+
+  var actx = null;
+  function unlock() {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.resume) actx.resume();
+    } catch (e) { actx = null; }
+  }
+  function beep(f, d, v) {
+    if (!state.cfg.sound || !actx) return;
+    try {
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'square'; o.frequency.value = f; g.gain.value = v == null ? 0.08 : v;
+      o.connect(g); g.connect(actx.destination);
+      o.start(); o.stop(actx.currentTime + d);
+    } catch (e) { /* no sound is fine */ }
+  }
+
+  /* ---------- Round logic ---------- */
+
+  function go(ph) { state.phase = ph; save(); renderAll(); window.scrollTo(0, 0); }
+
+  function eligible() {
+    var out = [];
+    BANK.forEach(function (c, i) { if (state.cfg.packs.indexOf(c.g) >= 0) out.push(i); });
+    return out;
+  }
+
+  function startGame() {
+    state.pool = shuffle(eligible());
+    state.round = 0; state.totals = [0, 0]; state.history = [];
+    newRound();
+  }
+
+  function newRound() {
+    if (!state.pool.length) state.pool = shuffle(eligible());
+    state.cur = { ci: state.pool.pop(), answers: [[], []], adj: [{}, {}], hints: [[], []], turn: 0, left: [] };
+    state.pass = null;
+    go('ready');
+  }
+
+  /* Scores for the reveal: a clash is 0, an unlisted answer takes the agreed judge score (2 until changed). */
+  function buildRows() {
+    var r = state.cur;
+    return [0, 1].map(function (p) {
+      return r.answers[p].map(function (a, i) {
+        var clash = state.cfg.clash && r.answers[1 - p].some(function (b) { return b.key === a.key; });
+        var unlisted = a.tier === 0;
+        var base = unlisted ? (r.adj[p][i] != null ? r.adj[p][i] : 2) : T[a.tier].pts;
+        return { text: a.text, key: a.key, label: a.label, tier: a.tier, fuzzy: a.fuzzy,
+                 i: i, clash: clash, unlisted: unlisted, pts: clash ? 0 : base };
+      });
+    });
+  }
+
+  function sum(rows) { return rows.reduce(function (n, r) { return n + r.pts; }, 0); }
+
+  function usedKeys() {
+    var used = {};
+    state.cur.answers[0].concat(state.cur.answers[1]).forEach(function (a) { used[a.key] = true; });
+    return used;
+  }
+
+  function computeLeft() {
+    var used = usedKeys(), out = [];
+    [3, 2].forEach(function (ti) {
+      var labels = labelsOf(state.cur.ci, ti).filter(function (l) { return !used['k:' + norm(l)]; });
+      shuffle(labels).forEach(function (l) { if (out.length < 4) out.push({ l: l, tier: ti + 1 }); });
+    });
+    state.cur.left = out;
+  }
+
+  /* ---------- Timer and turns ---------- */
+
+  var timer = null, deadline = 0, total = 0, lastSec = -1, ending = false;
+  var ui = {};
+
+  function startTurn() {
+    ending = false;
+    state.phase = 'turn';
+    save();
+    renderAll();
+    total = state.cfg.secs * 1000; deadline = Date.now() + total; lastSec = -1;
+    clearInterval(timer); timer = setInterval(tick, 100); tick();
+  }
+
+  function tick() {
+    if (state.phase !== 'turn' || !ui.secs) return;
+    var rem = deadline - Date.now();
+    ui.clock.style.width = Math.max(0, rem / total * 100) + '%';
+    var s = Math.max(0, Math.ceil(rem / 1000));
+    ui.secs.textContent = s;
+    if (s <= 5) ui.band.classList.add('urgent');
+    if (s <= 3 && s > 0 && s !== lastSec) beep(880, 0.07);
+    lastSec = s;
+    if (rem <= 0) endTurn(true);
+  }
+
+  function endTurn(timeUp) {
+    if (ending) return;
+    ending = true; clearInterval(timer); renderPows();
+    if (timeUp && ui.ans && ui.ans.value.trim()) submitAnswer();
+    if (ui.ans) ui.ans.disabled = true;
+    if (ui.band) ui.band.classList.add('done');
+    if (timeUp) { if (ui.secs) ui.secs.textContent = '0'; beep(440, 0.6, 0.12); }
+    setTimeout(function () {
+      ending = false;
+      if (state.cur.turn === 0) { state.cur.turn = 1; state.pass = { to: who(1) }; }
+      else state.pass = { to: -1 };
+      go('pass');
+    }, timeUp ? 1100 : 250);
+  }
+
+  function submitAnswer() {
+    var inp = ui.ans;
+    if (!inp) return;
+    var raw = inp.value;
+    if (!raw.trim()) return;
+    var p = who(state.cur.turn), list = state.cur.answers[p];
+    var j = judge(state.cur.ci, raw);
+    if (j.status === 'empty') { ui.msg.textContent = 'Too short.'; return; }
+    if (j.status === 'banned') { ui.msg.textContent = 'That is the prompt word. Try another.'; inp.select(); return; }
+    if (j.status === 'prefix') { ui.msg.textContent = 'It has to start with “' + j.pre + '”.'; inp.select(); return; }
+    var dupe = null;
+    list.forEach(function (a) { if (!dupe && a.key === j.key) dupe = a; });
+    if (dupe) {
+      ui.msg.textContent = 'Already in your list' +
+        (dupe.text.toLowerCase() === j.text.toLowerCase() ? '.' : ' as “' + dupe.text + '”.');
+      inp.select();
+      return;
+    }
+    list.push({ text: j.text, key: j.key, label: j.label, tier: j.tier, fuzzy: j.fuzzy });
+    inp.value = ''; ui.msg.textContent = '';
+    renderAnswers();
+    inp.focus();
+  }
+
+  /* ---------- DOM helpers ---------- */
+
+  var app = document.getElementById('app');
+
+  function el(tag, className, text) {
+    var n = document.createElement(tag);
+    if (className) n.className = className;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function btn(className, act, text) {
+    var b = el('button', className, text);
+    b.type = 'button';
+    b.setAttribute('data-act', act);
+    return b;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); }
+  function text(parent, s) { parent.appendChild(document.createTextNode(s)); return parent; }
+  function closestAct(node) {
+    while (node && node !== app) {
+      if (node.getAttribute && node.getAttribute('data-act')) return node;
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  function chip(tier, pts) {
+    var name = tier ? T[tier].n : 'Judge';
+    return el('span', 'chip t' + tier, name + ' +' + pts);
+  }
+
+  function tug(tot) {
+    tot = tot || state.totals;
+    var a = tot[0], b = tot[1], share = (a + b) ? a / (a + b) * 100 : 50;
+    var wrap = el('div', 'tug');
+    var red = el('div', 'tug-side red');
+    red.appendChild(el('span', 'tug-name', nm(0)));
+    red.appendChild(el('span', 'tug-pts', a));
+    var blue = el('div', 'tug-side blue');
+    blue.appendChild(el('span', 'tug-pts', b));
+    blue.appendChild(el('span', 'tug-name', nm(1)));
+    var bar = el('div', 'tug-bar');
+    bar.setAttribute('role', 'img');
+    bar.setAttribute('aria-label', nm(0) + ' ' + a + ', ' + nm(1) + ' ' + b);
+    var fill = el('i');
+    fill.style.width = share + '%';
+    bar.appendChild(fill);
+    wrap.appendChild(red); wrap.appendChild(blue); wrap.appendChild(bar);
+    return wrap;
+  }
+
+  function segSet(label, k, vals, fmt) {
+    var set = el('div', 'set');
+    set.appendChild(el('span', 'lab', label));
+    var seg = el('div', 'seg');
+    seg.setAttribute('role', 'group');
+    seg.setAttribute('aria-label', label);
+    vals.forEach(function (v) {
+      var b = btn('', 'set', fmt(v));
+      b.setAttribute('data-k', k);
+      b.setAttribute('data-v', String(v));
+      b.setAttribute('aria-pressed', String(state.cfg[k]) === String(v) ? 'true' : 'false');
+      seg.appendChild(b);
+    });
+    set.appendChild(seg);
+    return set;
+  }
+
+  function onOff(v) { return v ? 'On' : 'Off'; }
+  function plain(v) { return String(v); }
+
+  /* ---------- Views ---------- */
+
+  function renderSetup() {
+    var c = state.cfg;
+    var wrap = el('div', 'wrap');
+
+    var h1 = el('h1', 'mark');
+    h1.appendChild(el('span', 'r', 'Rare'));
+    h1.appendChild(el('span', 'b', 'Fight'));
+    wrap.appendChild(h1);
+    wrap.appendChild(el('p', 'lede', 'Same category, two players, one phone. Name more answers than your rival, and score more for rarer ones.'));
+
+    var corners = el('section', 'corners');
+    [0, 1].forEach(function (p) {
+      var lab = el('label', 'corner ' + cls(p));
+      lab.appendChild(el('span', 'eyebrow', cornerName(p)));
+      var inp = el('input', 'field');
+      inp.type = 'text'; inp.maxLength = 16; inp.autocomplete = 'off';
+      inp.placeholder = 'Player ' + (p + 1);
+      inp.value = c.names[p];
+      inp.setAttribute('data-name', p);
+      lab.appendChild(inp);
+      corners.appendChild(lab);
+    });
+    wrap.appendChild(corners);
+
+    var card = el('section', 'card');
+    var set = el('div', 'set');
+    set.appendChild(el('span', 'lab', 'Category packs'));
+    var packs = el('div', 'packs');
+    GROUPS.forEach(function (g) {
+      var b = btn('pack', 'pack', g);
+      b.setAttribute('data-v', g);
+      b.setAttribute('aria-pressed', c.packs.indexOf(g) >= 0 ? 'true' : 'false');
+      packs.appendChild(b);
+    });
+    set.appendChild(packs);
+    set.appendChild(el('span', 'hint', eligible().length + ' of ' + BANK.length + ' categories in play. Tap a pack to turn it off.'));
+    card.appendChild(set);
+    card.appendChild(segSet('Rounds', 'rounds', ROUND_OPTIONS, plain));
+    card.appendChild(segSet('Seconds per turn', 'secs', SECS_OPTIONS, plain));
+    var clash = segSet('Clash rule', 'clash', [true, false], onOff);
+    clash.appendChild(el('span', 'hint', 'When on, an answer you both give scores 0 for each of you.'));
+    card.appendChild(clash);
+    card.appendChild(segSet('Sound', 'sound', [true, false], onOff));
+    wrap.appendChild(card);
+
+    wrap.appendChild(btn('btn', 'start', 'Start the fight'));
+
+    var how = el('section', 'card');
+    how.appendChild(el('h3', 'eyebrow', 'How answers score'));
+    var tiers = el('ul', 'tiers');
+    [
+      [1, 'Common: ', 'sofa', ' in “Things you find in a home”'],
+      [2, 'Uncommon: ', 'kettle', ''],
+      [3, 'Rare: ', 'doormat', ''],
+      [4, 'Very rare: ', 'draught excluder', ''],
+      [0, 'Not on the built-in list. You two agree a score from 0 to 4.', '', '']
+    ].forEach(function (row) {
+      var li = el('li');
+      li.appendChild(chip(row[0], row[0] ? T[row[0]].pts : 2));
+      var desc = el('span');
+      text(desc, row[1]);
+      if (row[2]) desc.appendChild(el('b', '', row[2]));
+      if (row[3]) text(desc, row[3]);
+      li.appendChild(desc);
+      tiers.appendChild(li);
+    });
+    how.appendChild(tiers);
+    how.appendChild(el('p', 'hint', 'Each answer shows its score as soon as you add it. Rarity comes from tiers built into each of the ' + BANK.length + ' categories, not from other players’ answers, and spelling slips of a letter or two still count.'));
+    how.appendChild(el('p', 'hint', 'You earn one coin per point. Spend ' + CHRONO_COST + ' on Chrono for 10 more seconds, or ' + JOKER_COST + ' on Joker for a masked hint at a rare answer. Clashes only show at the reveal.'));
+    wrap.appendChild(how);
+
+    var colophon = el('p', 'colophon');
+    var home = el('a', '', 'More little games');
+    home.href = 'index.html';
+    colophon.appendChild(home);
+    wrap.appendChild(colophon);
+
+    app.appendChild(wrap);
+  }
+
+  function renderReady() {
+    var f = who(0), s = who(1), cat = BANK[state.cur.ci];
+    var wrap = el('div', 'wrap');
+    wrap.appendChild(tug());
+    var stack = el('div', 'stack');
+    stack.appendChild(el('p', 'eyebrow', 'Round ' + (state.round + 1) + ' of ' + state.cfg.rounds));
+    stack.appendChild(el('h2', 'cat big', cat.n));
+    wrap.appendChild(stack);
+    wrap.appendChild(el('p', 'lede', nm(f) + ' goes first. ' + nm(s) + ', look away until it’s your turn. You each get ' + state.cfg.secs + ' seconds on the same category.'));
+    var actions = el('div', 'actions');
+    actions.appendChild(btn('btn ' + cls(f), 'go', nm(f) + ', start'));
+    actions.appendChild(btn('btn ghost', 'reroll', 'Different category'));
+    wrap.appendChild(actions);
+    wrap.appendChild(btn('link', 'quit', 'End game'));
+    app.appendChild(wrap);
+  }
+
+  function renderTurn() {
+    var p = who(state.cur.turn), cat = BANK[state.cur.ci];
+    var wrap = el('div', 'wrap');
+
+    var band = el('div', 'band ' + cls(p));
+    var top = el('div', 'band-top');
+    var whoEl = el('div', 'who', cornerName(p));
+    whoEl.appendChild(el('b', '', nm(p)));
+    top.appendChild(whoEl);
+    var secs = el('div', 'secs', state.cfg.secs);
+    secs.setAttribute('role', 'timer');
+    top.appendChild(secs);
+    band.appendChild(top);
+    band.appendChild(el('h2', 'cat', cat.n));
+    var clockbar = el('div', 'clockbar');
+    var clock = el('i');
+    clockbar.appendChild(clock);
+    band.appendChild(clockbar);
+    wrap.appendChild(band);
+
+    var form = el('form', 'addrow');
+    form.autocomplete = 'off';
+    var ans = el('input', 'field');
+    ans.type = 'text';
+    ans.setAttribute('enterkeyhint', 'done');
+    ans.setAttribute('autocapitalize', 'none');
+    ans.setAttribute('autocorrect', 'off');
+    ans.spellcheck = false;
+    ans.placeholder = 'Type an answer, press Enter';
+    ans.setAttribute('aria-label', 'Answer');
+    form.appendChild(ans);
+    var add = el('button', 'btn compact', 'Add');
+    add.type = 'submit';
+    form.appendChild(add);
+    form.addEventListener('submit', function (e) { e.preventDefault(); submitAnswer(); });
+    wrap.appendChild(form);
+
+    var msg = el('p', 'msg');
+    msg.setAttribute('aria-live', 'polite');
+    wrap.appendChild(msg);
+
+    var pows = el('div', 'pows');
+    function powerUp(act, label, cost) {
+      var b = btn('pu', act, '');
+      b.appendChild(el('span', '', label));
+      var i = el('i');
+      i.appendChild(el('span', 'coin'));
+      text(i, cost);
+      b.appendChild(i);
+      return b;
+    }
+    var chrono = powerUp('chrono', 'Chrono +10s', CHRONO_COST);
+    var joker = powerUp('joker', 'Joker hint', JOKER_COST);
+    pows.appendChild(chrono); pows.appendChild(joker);
+    var bankWrap = el('span', 'bank');
+    bankWrap.appendChild(el('span', 'coin'));
+    var bank = el('span');
+    bankWrap.appendChild(bank);
+    pows.appendChild(bankWrap);
+    wrap.appendChild(pows);
+
+    var hints = el('div', 'hints');
+    hints.setAttribute('aria-live', 'polite');
+    wrap.appendChild(hints);
+
+    var head = el('div', 'listhead');
+    var count = el('span', 'eyebrow');
+    head.appendChild(count);
+    head.appendChild(btn('link', 'finish', 'Finish early'));
+    wrap.appendChild(head);
+
+    var col = el('section', 'col live');
+    var list = el('ul', 'rows');
+    col.appendChild(list);
+    wrap.appendChild(col);
+
+    app.appendChild(wrap);
+    ui = { band: band, secs: secs, clock: clock, ans: ans, msg: msg, chrono: chrono, joker: joker,
+           bank: bank, hints: hints, count: count, list: list };
+    renderAnswers();
+    ans.focus();
+  }
+
+  function liveRow(a) {
+    var li = el('li', 'row');
+    var txt = el('span', 'txt', a.text);
+    if (a.tier) {
+      if (norm(a.text) !== norm(a.label)) txt.appendChild(el('small', '', 'Counted as ' + a.label));
+      li.appendChild(txt);
+      li.appendChild(chip(a.tier, T[a.tier].pts));
+    } else {
+      txt.appendChild(el('small', '', 'Not on the list. Scored at the reveal.'));
+      li.appendChild(txt);
+      li.appendChild(el('span', 'chip t0', 'Judge'));
+    }
+    return li;
+  }
+
+  function renderAnswers() {
+    if (!ui.list) return;
+    var p = who(state.cur.turn), list = state.cur.answers[p];
+    clear(ui.list);
+    if (list.length) {
+      list.slice().reverse().forEach(function (a) { ui.list.appendChild(liveRow(a)); });
+    } else {
+      ui.list.appendChild(el('li', 'empty', 'Answers appear here with their score.'));
+    }
+    var pts = 0, pend = 0;
+    list.forEach(function (a) { if (a.tier) pts += T[a.tier].pts; else pend++; });
+    ui.count.textContent = list.length + (list.length === 1 ? ' answer' : ' answers') + ' · ' + pts + ' pts' +
+      (pend ? ' + ' + pend + ' to judge' : '');
+    renderPows();
+  }
+
+  function renderPows() {
+    if (!state.cur || !ui.chrono) return;
+    var p = who(state.cur.turn), c = state.coins[p];
+    ui.chrono.disabled = c < CHRONO_COST || ending;
+    ui.joker.disabled = c < JOKER_COST || ending;
+    ui.bank.textContent = c;
+    clear(ui.hints);
+    state.cur.hints[p].forEach(function (h) {
+      var line = el('p', 'hintline');
+      line.appendChild(el('b', '', 'Hint'));
+      text(line, h.m);
+      ui.hints.appendChild(line);
+    });
+  }
+
+  function renderPass() {
+    var to = state.pass ? state.pass.to : -1;
+    var wrap = el('div', 'wrap');
+    var pass = el('div', 'pass');
+    if (to >= 0) {
+      pass.appendChild(el('p', 'eyebrow', 'Pass the phone to'));
+      pass.appendChild(el('h2', 'name ' + cls(to), nm(to)));
+      pass.appendChild(el('p', 'lede', cornerName(to) + '. Same category: ' + BANK[state.cur.ci].n + '. ' + state.cfg.secs + ' seconds.'));
+      pass.appendChild(btn('btn ' + cls(to), 'go', nm(to) + ', start'));
+    } else {
+      pass.appendChild(el('p', 'eyebrow', 'Both turns done'));
+      pass.appendChild(el('h2', 'name', 'Scorecards'));
+      pass.appendChild(el('p', 'lede', 'Gather round. Both lists are about to be revealed.'));
+      pass.appendChild(btn('btn', 'reveal', 'Reveal'));
+    }
+    wrap.appendChild(pass);
+    app.appendChild(wrap);
+  }
+
+  function revealRow(p, r) {
+    var li = el('li', 'row' + (r.clash ? ' clash' : ''));
+    var txt = el('span', 'txt', r.text);
+    if (r.unlisted && !r.clash) txt.appendChild(el('small', '', 'Not on the list. Tap to score.'));
+    else if (r.tier && norm(r.text) !== norm(r.label)) txt.appendChild(el('small', '', 'Counted as ' + r.label));
+    li.appendChild(txt);
+    var c;
+    if (r.clash) c = el('span', 'chip clash', 'Clash 0');
+    else if (r.unlisted) {
+      c = btn('chip t0', 'adj', 'Judge +' + r.pts);
+      c.setAttribute('data-p', p);
+      c.setAttribute('data-i', r.i);
+      c.setAttribute('aria-label', 'Score for ' + r.text + ', currently ' + r.pts + '. Tap to change.');
+    } else c = chip(r.tier, r.pts);
+    li.appendChild(c);
+    return li;
+  }
+
+  function revealCol(p, rows, rt) {
+    var col = el('section', 'col');
+    var head = el('header', 'col-h ' + cls(p));
+    head.appendChild(el('b', '', nm(p)));
+    head.appendChild(el('span', '', rt));
+    col.appendChild(head);
+    if (rows.length) {
+      var ul = el('ul', 'rows');
+      rows.forEach(function (r) { ul.appendChild(revealRow(p, r)); });
+      col.appendChild(ul);
+    } else {
+      col.appendChild(el('p', 'empty', 'No answers.'));
+    }
+    return col;
+  }
+
+  function renderReveal() {
+    var rows = buildRows(), rt = rows.map(sum), cat = BANK[state.cur.ci];
+    var proj = [state.totals[0] + rt[0], state.totals[1] + rt[1]];
+    var w = rt[0] === rt[1] ? -1 : (rt[0] > rt[1] ? 0 : 1);
+    var anyJudge = rows.some(function (rs) { return rs.some(function (r) { return r.unlisted && !r.clash; }); });
+    var last = state.round + 1 >= state.cfg.rounds;
+
+    var wrap = el('div', 'wrap wide');
+    wrap.appendChild(tug(proj));
+    var stack = el('div', 'stack');
+    stack.appendChild(el('p', 'eyebrow', 'Round ' + (state.round + 1) + ' of ' + state.cfg.rounds + ' scored'));
+    stack.appendChild(el('h2', 'cat', cat.n));
+    stack.appendChild(el('p', 'lead' + (w < 0 ? '' : ' ' + cls(w)),
+      w < 0 ? 'Round drawn' : nm(w) + ' takes the round by ' + Math.abs(rt[0] - rt[1])));
+    wrap.appendChild(stack);
+    if (anyJudge) wrap.appendChild(el('p', 'note', 'Answers marked Judge are not on the built-in list. Agree a score together: tap to step through 0 to 4. They start at 2.'));
+    var cols = el('div', 'cols');
+    cols.appendChild(revealCol(0, rows[0], rt[0]));
+    cols.appendChild(revealCol(1, rows[1], rt[1]));
+    wrap.appendChild(cols);
+    wrap.appendChild(el('p', 'note', 'Coins earned when you continue: ' + nm(0) + ' +' + rt[0] + ', ' + nm(1) + ' +' + rt[1] + '.'));
+    if (state.cur.left.length) {
+      var card = el('section', 'card');
+      card.appendChild(el('h3', 'eyebrow', 'Still on the table'));
+      var ul = el('ul', 'answers');
+      state.cur.left.forEach(function (x) {
+        var li = el('li', 'pill', x.l + ' ');
+        li.appendChild(chip(x.tier, T[x.tier].pts));
+        ul.appendChild(li);
+      });
+      card.appendChild(ul);
+      wrap.appendChild(card);
+    }
+    wrap.appendChild(btn('btn', 'next', last ? 'Final scorecard' : 'Next round'));
+    app.appendChild(wrap);
+  }
+
+  function bestOf(p) {
+    var best = null;
+    state.history.forEach(function (h) {
+      h.rows[p].forEach(function (r) {
+        if (!r.clash && (!best || r.pts > best.r.pts)) best = { r: r, ci: h.ci };
+      });
+    });
+    return best;
+  }
+
+  function renderFinal() {
+    var a = state.totals[0], b = state.totals[1], w = a === b ? -1 : (a > b ? 0 : 1);
+    var wrap = el('div', 'wrap');
+    wrap.appendChild(el('p', 'eyebrow', 'Final scorecard'));
+    wrap.appendChild(el('h2', 'verdict' + (w < 0 ? '' : ' ' + cls(w)), w < 0 ? 'Draw' : nm(w) + ' wins'));
+    wrap.appendChild(el('p', 'final-score', a + ' – ' + b));
+    wrap.appendChild(tug());
+
+    var card = el('section', 'card');
+    var tbl = el('div', 'tbl');
+    tbl.appendChild(el('span', 'h', '#'));
+    tbl.appendChild(el('span', 'h', 'Category'));
+    tbl.appendChild(el('span', 'h r', nm(0).slice(0, 3)));
+    tbl.appendChild(el('span', 'h r', nm(1).slice(0, 3)));
+    state.history.forEach(function (h, i) {
+      var rw = h.rt[0] === h.rt[1] ? -1 : (h.rt[0] > h.rt[1] ? 0 : 1);
+      tbl.appendChild(el('span', 'n', i + 1));
+      tbl.appendChild(el('span', 'c', BANK[h.ci].n));
+      tbl.appendChild(el('span', 'p' + (rw === 0 ? ' win red' : ''), h.rt[0]));
+      tbl.appendChild(el('span', 'p' + (rw === 1 ? ' win blue' : ''), h.rt[1]));
+    });
+    card.appendChild(tbl);
+    wrap.appendChild(card);
+
+    var bests = el('section', 'card');
+    var any = false;
+    [0, 1].forEach(function (p) {
+      var x = bestOf(p);
+      if (!x) return;
+      any = true;
+      var box = el('div', 'best ' + cls(p));
+      box.appendChild(el('span', 'eyebrow', nm(p) + '’s best punch'));
+      box.appendChild(el('b', '', (x.r.tier ? x.r.label : x.r.text) + ' +' + x.r.pts));
+      box.appendChild(el('span', 'hint', BANK[x.ci].n));
+      bests.appendChild(box);
+    });
+    if (any) wrap.appendChild(bests);
+
+    var actions = el('div', 'actions');
+    actions.appendChild(btn('btn', 'start', 'Rematch'));
+    actions.appendChild(btn('btn ghost', 'setup', 'Change settings'));
+    wrap.appendChild(actions);
+    app.appendChild(wrap);
+  }
+
+  function renderAll() {
+    clear(app);
+    ui = {};
+    switch (state.phase) {
+      case 'ready': renderReady(); break;
+      case 'turn': renderTurn(); break;
+      case 'pass': renderPass(); break;
+      case 'reveal': renderReveal(); break;
+      case 'final': renderFinal(); break;
+      default: renderSetup();
+    }
+  }
+
+  /* ---------- Events ---------- */
+
+  var actions = {
+    set: function (b) {
+      var v = b.getAttribute('data-v');
+      state.cfg[b.getAttribute('data-k')] = v === 'true' ? true : v === 'false' ? false : Number(v);
+      save(); renderAll();
+    },
+    pack: function (b) {
+      var g = b.getAttribute('data-v'), p = state.cfg.packs, i = p.indexOf(g);
+      if (i >= 0) { if (p.length > 1) p.splice(i, 1); }
+      else p.push(g);
+      save(); renderAll();
+    },
+    start: function () { startGame(); },
+    go: function () { startTurn(); },
+    reroll: function () {
+      var old = state.cur.ci;
+      if (!state.pool.length) state.pool = shuffle(eligible().filter(function (i) { return i !== old; }));
+      if (!state.pool.length) return;
+      state.pool.unshift(old);
+      state.cur.ci = state.pool.pop();
+      save(); renderAll();
+    },
+    quit: function (b) {
+      if (!b.getAttribute('data-sure')) {
+        b.setAttribute('data-sure', '1');
+        b.textContent = 'Tap again to end the game';
+        return;
+      }
+      state.cur = null; state.pass = null;
+      go('setup');
+    },
+    finish: function () { endTurn(false); },
+    chrono: function () {
+      var p = who(state.cur.turn);
+      if (ending || state.coins[p] < CHRONO_COST) return;
+      state.coins[p] -= CHRONO_COST; save();
+      deadline += 10000; total += 10000;
+      renderPows();
+      if (ui.ans) ui.ans.focus();
+    },
+    joker: function () {
+      var p = who(state.cur.turn);
+      if (ending || state.coins[p] < JOKER_COST) return;
+      var used = {}, given = {};
+      state.cur.answers[p].forEach(function (a) { used[a.key] = true; });
+      state.cur.hints[p].forEach(function (h) { given[h.l] = true; });
+      var pool = labelsOf(state.cur.ci, 2).concat(labelsOf(state.cur.ci, 3))
+        .filter(function (l) { return !used['k:' + norm(l)] && !given[l]; });
+      if (!pool.length) { ui.msg.textContent = 'No hints left for this category.'; return; }
+      var l = pool[Math.floor(Math.random() * pool.length)];
+      var m = l.split(' ').map(function (w) {
+        var dashes = '';
+        for (var k = 1; k < w.length; k++) dashes += '_';
+        return w.charAt(0) + dashes;
+      }).join('  ');
+      state.cur.hints[p].push({ l: l, m: m });
+      state.coins[p] -= JOKER_COST; save();
+      renderPows();
+      if (ui.ans) ui.ans.focus();
+    },
+    reveal: function () { computeLeft(); beep(660, 0.15); go('reveal'); },
+    adj: function (b) {
+      var p = +b.getAttribute('data-p'), i = +b.getAttribute('data-i'), cur = state.cur.adj[p][i];
+      state.cur.adj[p][i] = ((cur != null ? cur : 2) + 1) % 5;
+      var y = window.scrollY;
+      save(); renderAll();
+      window.scrollTo(0, y);
+    },
+    next: function () {
+      var rows = buildRows(), rt = rows.map(sum);
+      state.history.push({ ci: state.cur.ci, rows: rows, rt: rt });
+      state.totals = [state.totals[0] + rt[0], state.totals[1] + rt[1]];
+      state.coins = [state.coins[0] + rt[0], state.coins[1] + rt[1]];
+      state.round++;
+      if (state.round >= state.cfg.rounds) { state.cur = null; state.pass = null; go('final'); }
+      else newRound();
+    },
+    setup: function () { state.cur = null; state.pass = null; go('setup'); }
+  };
+
+  app.addEventListener('click', function (e) {
+    var b = closestAct(e.target);
+    if (!b) return;
+    unlock();
+    var fn = actions[b.getAttribute('data-act')];
+    if (fn) fn(b);
+  });
+
+  /* Keep the keyboard up when a power-up is tapped mid-turn. */
+  app.addEventListener('mousedown', function (e) {
+    var n = e.target;
+    while (n && n !== app) {
+      if (n.classList && n.classList.contains('pu')) { e.preventDefault(); return; }
+      n = n.parentNode;
+    }
+  });
+
+  app.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.getAttribute && t.getAttribute('data-name') !== null) {
+      state.cfg.names[+t.getAttribute('data-name')] = t.value;
+      save();
+    }
+  });
+
+  /* ---------- Go ---------- */
+
+  load();
+  renderAll();
+})();
+</script>
+</body>
+</html>
