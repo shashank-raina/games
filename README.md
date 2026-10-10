@@ -30,7 +30,7 @@ A word duel for two people sharing one phone. Both get the same category and the
 
 **Play it:** [littlegames.uk/rarefight.html](https://littlegames.uk/rarefight.html)
 
-- Over a hundred categories in eight packs: rhymes, "starts with", home and life, food and drink, and more
+- 40 deep categories in eight packs: rhymes, "starts with", home and life, food and drink, and more, each with well over a hundred answers
 - Every answer scores as you type it: jab +1, hook +2, uppercut +3, knockout +4
 - Answers not on the built-in list get a judge score the two of you agree at the reveal
 - Clash rule: an answer you both gave scores nothing for either of you

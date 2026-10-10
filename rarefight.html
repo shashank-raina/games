@@ -204,699 +204,213 @@
     {n:'Hook',pts:2,d:'Uncommon'},
     {n:'Uppercut',pts:3,d:'Rare'},
     {n:'Knockout',pts:4,d:'Very rare'}];
-  
-  /* t = four comma-separated lists, from common (jab) to very rare (knockout). "a|b" gives aliases for one answer. */
+
+  var GROUPS=["Rhymes","Starts with","Home & life","Food & drink","Nature & animals","Places & travel","Fun & culture","Colours & traits"];
+
+  /* Each category has four comma-separated tiers, from common (jab) to very rare (knockout).
+     "a|b" lists aliases for one answer; the first is the label shown. */
   var BANK=[
-  {n:'Words that rhyme with “pow”',ban:'pow',t:[
-   "now, how, cow, wow, bow",
-   "vow, brow, plough|plow, allow, meow|miaow, chow, row, sow",
-   "prow, endow, avow, bough, ciao, thou, somehow, anyhow, eyebrow, disallow",
-   "kowtow, powwow, highbrow, lowbrow, scow, know-how, bow-wow, luau"]},
-  {n:'Words that rhyme with “light”',ban:'light',t:[
-   "night, right, bright, fight, tight, white, might, sight",
-   "flight, height, kite, bite, site, write, quite, fright, knight, slight",
-   "sprite, polite, ignite, invite, tonight, delight, despite, midnight, daylight, plight, blight, spite, rite, moonlight, unite, recite, alight, upright, outright, airtight, excite, incite",
-   "overbite, parasite, appetite, erudite, termite, copyright, satellite, dynamite, bight, wight, anchorite, meteorite, neophyte, stalactite, contrite, lite"]},
-  {n:'Words that rhyme with “day”',ban:'day',t:[
-   "say, play, way, may, stay, pay, today, away, hey, bay, ray, lay",
-   "gray|grey, tray, clay, stray, spray, delay, okay|ok, display, pray, sway, hay",
-   "bouquet, ballet, buffet, cliché, sorbet, array, betray, hooray, decay, convey, obey, survey, essay, beret, valet, duvet, parfait, gourmet, chalet, crochet",
-   "negligee, cabaret, soirée, fiancé, toupee, matinee, protégé, bidet, sachet, ricochet, croquet"]},
-  {n:'Things you find in a home',t:[
-   "sofa|couch, bed, table, chair, tv|television, fridge|refrigerator, wardrobe, lamp",
-   "kettle, toaster, curtains, rug|carpet, oven, sink, mirror, microwave, bookshelf|bookcase, cooker, radiator, clock, cushion",
-   "doormat, bread bin, tea towel, smoke alarm, extension lead, coat hooks, fruit bowl, airing cupboard, plant pot, picture frame, boiler, ironing board",
-   "draught excluder|draft excluder, stopcock, fuse box|consumer unit, loft ladder, trouser press, dado rail, immersion heater, boot scraper, spice rack, key rack"]},
-  {n:'Things in a kitchen',t:[
-   "fridge, oven, sink, kettle, knife, fork, spoon, plate",
-   "toaster, microwave, frying pan|saucepan|pan, cup, mug, bowl, cooker, spatula, freezer, dishwasher",
-   "colander, whisk, grater, chopping board, tin opener|can opener, peeler, ladle, rolling pin, tongs, oven glove, measuring jug, sieve",
-   "mandoline, garlic press, pestle and mortar|pestle|mortar, zester, melon baller, trivet, steamer, cafetière|cafetiere, lazy susan, potato ricer"]},
-  {n:'Things in a bathroom',t:[
-   "toilet|loo, bath, sink, shower, toothbrush, towel, mirror, soap",
-   "toothpaste, shampoo, toilet roll|toilet paper, bath mat, plug, taps|tap, razor, flannel|face cloth, mouthwash",
-   "loofah|sponge, conditioner, extractor fan, shower curtain, bathroom scales|scales, plunger, toilet brush, cotton buds, floss|dental floss",
-   "bidet, pumice stone, bath bomb, towel rail, shaving brush, toilet cistern, sanitary bin, shower caddy, bath salts, limescale remover"]},
-  {n:'Things in a garage or shed',t:[
-   "car, bike|bicycle, ladder, hammer, spade, lawnmower|lawn mower, toolbox, paint",
-   "screwdriver, drill, saw, wheelbarrow, rake, hose, spanner, nails, screws, bin",
-   "workbench, jump leads, jerry can, spirit level, hacksaw, pliers, crowbar, secateurs, compost, strimmer, trowel",
-   "vice|vise, tyre pump, blowtorch, soldering iron, plane, mitre saw, oil funnel, grease gun, tin snips, breaker bar, chisel"]},
-  {n:'Things you pack for a holiday',t:[
-   "passport, suitcase, clothes, swimming costume|swimsuit|bikini|swim trunks, sun cream|suncream|sunscreen, sunglasses, phone, charger, shorts, toothbrush",
-   "flip flops, towel, camera, hat, book, underwear, socks, sandals, travel adapter|adapter, tickets",
-   "insect repellent, first aid kit, travel pillow, beach bag, snorkel, guidebook, after sun|aftersun, headphones, kindle|e-reader, power bank",
-   "dry bag, packing cubes, luggage tag, money belt, travel iron, inflatable ring, water shoes, mosquito net, universal plug"]},
-  {n:'Fruits',t:[
-   "apple, banana, orange, grape, strawberry, pear, lemon, pineapple",
-   "mango, peach, cherry, kiwi, melon, plum, raspberry, blueberry, lime, watermelon",
-   "apricot, nectarine, pomegranate, fig, papaya, passion fruit, grapefruit, blackberry, cranberry, coconut, redcurrant",
-   "lychee, quince, persimmon, kumquat, guava, dragon fruit, damson, gooseberry, tamarillo, rambutan, medlar, loquat"]},
-  {n:'Animals at the zoo',t:[
-   "lion, tiger, elephant, giraffe, monkey, zebra, bear",
-   "penguin, gorilla, hippo|hippopotamus, rhino|rhinoceros, kangaroo, crocodile, panda, snake, camel, flamingo",
-   "meerkat, lemur, cheetah, leopard, orangutan, otter, sloth, red panda, tapir, wolf, parrot",
-   "okapi, binturong, capybara, aardvark, pangolin, wallaby, gibbon, serval, komodo dragon, tamarin, quokka, caracal"]},
-  {n:'Things that are red',t:[
-   "apple, blood, rose, strawberry, fire engine, tomato, post box|pillar box, ladybird|ladybug",
-   "cherry, ruby, stop sign, lipstick, chilli|chili, brick, cranberry, poppy, london bus|bus, santa suit",
-   "beetroot, radish, raspberry, pomegranate, fire extinguisher, boxing glove, lobster, paprika, red kite, robin, ketchup, redcurrant",
-   "cochineal, garnet, carmine, madder, scarlet macaw, vermilion, crimson, rooibos, red mullet, cayenne"]},
-  {n:'Things that are round',t:[
-   "ball, wheel, sun, moon, coin, plate, clock, orange",
-   "pizza, globe, bubble, ring, button, cd, doughnut|donut, hula hoop, bauble, steering wheel",
-   "marble, manhole cover, frisbee, tambourine, puck, porthole, tyre|tire, dartboard, lens, pea, snooker ball, cymbal",
-   "petri dish, roundel, bagel, ball bearing, grommet, pulley, quoit, crumpet, bullseye, gasket, washer"]},
-  {n:'Things that fly',t:[
-   "bird, plane|aeroplane|airplane, helicopter, bee, butterfly, kite, fly, bat, rocket",
-   "balloon, drone, eagle, wasp, moth, hot air balloon, owl, parachute, frisbee, paper aeroplane|paper plane",
-   "hang glider, glider, dragonfly, jet, zeppelin|airship, seagull|gull, hawk, pigeon, mosquito, jetpack, paraglider, hummingbird",
-   "flying squirrel, flying fish, pterodactyl, gyrocopter, microlight, blimp, shuttlecock, boomerang, spitfire, sugar glider, fruit bat"]},
-  {n:'Things in a classroom or school bag',t:[
-   "pen, pencil, book, desk, chair, ruler, teacher, whiteboard",
-   "rubber|eraser, sharpener, calculator, bag, paper, scissors, glue, pencil case, board, lunchbox|lunch box, chalk",
-   "protractor, compass, highlighter, set square, textbook, register, planner|diary, globe, blackboard, stapler, hole punch, homework",
-   "geometry set, abacus, slide rule, inkwell, bunsen burner, cloakroom peg, tuck box, bell, blotter, pastoral book"]},
-  {n:'Pizza toppings',t:[
-   "cheese|mozzarella, pepperoni, ham, mushroom, pineapple, onion, tomato, sweetcorn",
-   "olives|olive, peppers|pepper, chicken, bacon, sausage, jalapeño|jalapeno, spinach, beef, tuna",
-   "anchovies|anchovy, rocket, salami, chorizo, prawns|prawn, basil, artichoke, parmesan, garlic, egg, bbq sauce, bbq chicken",
-   "nduja, capers, truffle, pesto, goat's cheese|goats cheese, burrata, prosciutto, aubergine|eggplant, pulled pork, lamb, figs"]},
-  {n:'Types of pasta',t:[
-   "spaghetti, penne, lasagne|lasagna, macaroni, tagliatelle, fusilli, ravioli, linguine",
-   "farfalle, rigatoni, tortellini, fettuccine, cannelloni, orzo, pappardelle, vermicelli, conchiglie|shells, gnocchi",
-   "bucatini, orecchiette, cavatappi, ziti, rotini, tortelloni, trofie, angel hair|capellini, paccheri, casarecce",
-   "strozzapreti, mafaldine, pici, fregola, anelli, campanelle, radiatori, garganelli, ditalini, lumache, tripoline, bigoli"]},
-  {n:'Ice cream flavours',t:[
-   "vanilla, chocolate, strawberry, mint choc chip|mint chocolate chip, cookie dough, raspberry ripple, pistachio, caramel",
-   "coffee, salted caramel, rum and raisin, banana, toffee, lemon, cookies and cream, honeycomb, mango, coconut",
-   "neapolitan, tutti frutti, bubblegum, rocky road, butterscotch, stracciatella, cherry, peanut butter, tiramisu, hazelnut",
-   "black sesame, lavender, earl grey, matcha, rose, olive oil, avocado, ube, durian, fennel"]},
-  {n:'Breakfast foods',t:[
-   "cereal, toast, eggs|egg, bacon, porridge, pancakes|pancake, croissant, sausage",
-   "yoghurt|yogurt, fruit, beans, bagel, muesli, granola, waffles|waffle, orange juice, tea, coffee, crumpets|crumpet",
-   "black pudding, hash browns|hash brown, kippers|kipper, kedgeree, eggs benedict, french toast, smoothie, omelette|omelet, marmite, mushrooms, tomato, soldiers",
-   "bubble and squeak, congee, shakshuka, arbroath smokie, devilled kidneys, oatcakes, huevos rancheros, bircher muesli, laverbread|laver bread, kefir"]},
-  {n:'Sports played with a ball',t:[
-   "football|soccer, basketball, tennis, rugby, cricket, golf, baseball",
-   "netball, volleyball, hockey, handball, table tennis|ping pong, snooker, bowls, rounders, dodgeball, american football",
-   "water polo, lacrosse, squash, pool, croquet, softball, hurling, gaelic football, ten pin bowling|bowling, padel, korfball, pickleball",
-   "shinty, sepak takraw, jai alai, pelota, fives, camogie, bossaball, wheelchair rugby, bandy, polocrosse, tchoukball, eton wall game"]},
-  {n:'Things in a park',t:[
-   "swings|swing, slide, bench, trees|tree, grass, ducks|duck, pond, path",
-   "roundabout, seesaw, bin, dog, football pitch, flowers|flower, fountain, playground, bandstand, squirrel, picnic",
-   "sandpit|sandbox, bowling green, duck pond, climbing frame, ice cream van, cafe|café, drinking fountain, tennis court, skate park, water feature, bird feeder, jogger",
-   "pavilion, ha-ha, gazebo, pergola, boating lake, crazy golf, maze, war memorial, topiary, sundial, aviary, park keeper"]},
-  {n:'Musical instruments',t:[
-   "guitar, piano, drums, violin, trumpet, flute, saxophone, bass",
-   "clarinet, cello, harp, trombone, keyboard, ukulele, harmonica, tambourine, recorder, xylophone, accordion, banjo",
-   "oboe, bassoon, tuba, french horn, viola, double bass, bagpipes, triangle, cymbals, mandolin, glockenspiel, didgeridoo, kazoo",
-   "theremin, sitar, bodhran, lute, hurdy-gurdy, ocarina, zither, sousaphone, cor anglais, lyre, balalaika, marimba, djembe, harpsichord"]},
-  {n:'Countries in Europe',t:[
-   "france, spain, italy, germany, uk|united kingdom, england, scotland, wales, poland, greece, portugal",
-   "netherlands|holland, belgium, sweden, norway, denmark, ireland, switzerland, austria, finland, russia",
-   "hungary, czech republic|czechia, romania, croatia, bulgaria, serbia, ukraine, iceland, slovakia, slovenia, lithuania, latvia, estonia, albania, turkey",
-   "luxembourg, malta, monaco, liechtenstein, san marino, andorra, montenegro, north macedonia|macedonia, moldova, kosovo, belarus, bosnia and herzegovina|bosnia, vatican city|vatican, cyprus"]},
-  {n:'Capital cities',t:[
-   "london, paris, rome, madrid, berlin, washington dc|washington, tokyo, beijing|peking",
-   "moscow, cairo, canberra, ottawa, dublin, lisbon, amsterdam, athens, delhi|new delhi, vienna, brussels, stockholm",
-   "oslo, copenhagen, helsinki, warsaw, budapest, prague, bangkok, nairobi, buenos aires, lima, santiago, bogota, hanoi, seoul, jakarta, wellington",
-   "ulaanbaatar, reykjavik, valletta, tallinn, vilnius, riga, bratislava, ljubljana, tbilisi, kathmandu, thimphu, ashgabat, bishkek, asuncion, montevideo, port moresby, tirana, yerevan"]},
-  {n:'Things at the seaside',t:[
-   "sand, sea, waves, bucket, spade, sandcastle|sand castle, ice cream, seagull|gull, shells|shell, deckchair",
-   "pier, rock pool|rockpool, crab, lifeguard, towel, windbreak, fish and chips, donkey, candy floss, lighthouse, beach hut, surfboard",
-   "arcade, pedalo, seaweed, jellyfish, starfish, driftwood, kite, harbour, groyne|groin, pebbles|pebble, stick of rock|rock, bunting, lilo",
-   "whelk stall, punch and judy, promenade|prom, breakwater, razor shell, mermaid's purse|mermaids purse, tide table, bathing machine, crazy golf, lido, sea wall, coastguard"]},
-  {n:'Things in a handbag or pockets',t:[
-   "phone, keys, wallet, purse, tissues, lipstick, money|cash, pen",
-   "headphones|earphones, mints|mint, makeup|make-up, comb, hairbrush, receipts|receipt, chewing gum|gum, hand sanitiser|hand sanitizer, sunglasses, glasses, umbrella",
-   "lip balm, hair tie|hairband|bobble, tampons, hand cream, plasters|plaster, paracetamol, notebook, loose change|change, perfume, nail file, compact mirror",
-   "safety pin, kirby grip|hairpin, travel card, loyalty cards, penknife|pocket knife, poo bags, tweezers, matches, lighter, boarding pass"]},
-  {n:'Things in a toolbox',t:[
-   "hammer, screwdriver, nails, screws, pliers, spanner|wrench, tape measure, saw",
-   "drill, spirit level, chisel, allen key|hex key, stanley knife|craft knife, torch, glue, sandpaper",
-   "hacksaw, mallet, wire strippers, drill bits, masking tape, rawl plugs|wall plugs, stud finder, socket set, voltage tester, adjustable spanner, insulation tape|electrical tape",
-   "bradawl, plumb line, mole grips, pincers, awl, countersink, caulking gun, tin snips, fretsaw, rasp, cold chisel|bolster"]},
-  {n:'Things at a wedding',t:[
-   "bride, groom, cake, rings|ring, dress, flowers, vows, guests",
-   "bridesmaids|bridesmaid, best man, confetti, speeches|speech, church, photographer, suit, veil, bouquet, first dance, ushers|usher, dj",
-   "buffet, toast, garter, hen do|hen party, stag do|stag party, top table, marquee, favours|favour, photo booth, page boy|pageboy, flower girl, registrar, vicar",
-   "something borrowed, wedding planner, confetti cannon, order of service, seating plan|table plan, cufflinks, fascinator, chuppah, wedding march, honeymoon"]},
-  {n:'Dog breeds',t:[
-   "labrador, poodle, pug, bulldog, german shepherd|alsatian, golden retriever|retriever, chihuahua, beagle",
-   "husky|siberian husky, dachshund, boxer, rottweiler, spaniel|cocker spaniel, collie|border collie, great dane, dalmatian, corgi|welsh corgi, terrier, greyhound",
-   "whippet, pomeranian, shih tzu, schnauzer, basset hound, bloodhound, weimaraner, saluki, akita, mastiff, staffie|staffordshire bull terrier, vizsla, samoyed, pointer",
-   "borzoi, bichon frise, newfoundland, leonberger, affenpinscher, basenji, sloughi, xoloitzcuintli, lhasa apso, otterhound, kooikerhondje, bergamasco"]},
-  {n:'Things that are cold',t:[
-   "ice, snow, freezer|fridge, winter, ice cream, penguin|polar bear, north pole, iceberg",
-   "ice cube, igloo, arctic, antarctica, frost, snowman, iced tea|cold drink, ice lolly|popsicle|ice pop, glacier, hail, blizzard, sleet",
-   "icicle, liquid nitrogen, dry ice, frostbite, tundra, ice rink, ski slope, permafrost, walk in freezer, slush",
-   "snow cone, cryotherapy, absolute zero, cold shoulder, deep freeze, hoar frost, cryogenic chamber, yeti, snow leopard, krill"]},
-  {n:'Things that are yellow',t:[
-   "banana, sun, lemon, duck|rubber duck, sunflower, custard, butter, school bus",
-   "daffodil, cheese, honey, chick, mustard, canary, taxi, sweetcorn|corn, pineapple, bee",
-   "buttercup, dandelion, egg yolk|yolk, rapeseed|oilseed rape|canola, saffron, post it, highlighter, hazard sign|caution tape, yellow submarine, banana skin, lemon curd, hi vis jacket|hi vis",
-   "turmeric, gorse, primrose, amber, topaz, citrine, forsythia, laburnum, yellowhammer, brimstone butterfly, chartreuse, mimosa"]},
-  {n:'Things you do in the morning',t:[
-   "wake up, brush teeth|brush my teeth, shower, breakfast|eat breakfast, get dressed, make coffee|coffee|make tea|tea, check phone|check my phone",
-   "make bed|make the bed, turn off alarm|alarm, stretch, feed the cat|feed the dog|feed pets, pack lunch, commute, put on makeup|makeup, read the news|news, walk the dog, brush hair",
-   "meditate, journal, hit snooze|snooze, iron shirt|iron clothes, do yoga|yoga, go for a run|run, take vitamins|vitamins, open curtains|open the curtains, water plants",
-   "cold plunge, gratitude list, oil pulling, dry brushing, tongue scraping, sun salutation, wind the clock, put the bins out, empty the dishwasher"]},
-  {n:'Things with wheels',t:[
-   "car, bike|bicycle, bus, lorry|truck, train, skateboard, wheelbarrow, pram|pushchair|stroller|buggy",
-   "wheelchair, scooter, trolley, motorbike|motorcycle, tractor, suitcase, roller skates|rollerblades, shopping trolley, van, taxi, trike",
-   "office chair, go kart, segway, unicycle, hoverboard, cart, caravan, ambulance, fire engine, forklift, steamroller",
-   "penny farthing, rickshaw, tuk tuk|tuktuk, gurney, dolly, castor|caster, wagon, chariot, hearse, rollator, hand truck, lunar rover"]},
-  {n:'Things that start with “ice”',pre:'ice',t:[
-   "iceland, ice cream, ice cube, iceberg, ice skating, ice hockey, icicle, icing",
-   "icelandic, ice lolly, ice rink, ice skates, ice pack, ice bucket, ice age, ice cold, iced tea, iced coffee, ice bath, ice cap",
-   "icebreaker, ice pick, ice axe, ice sheet, ice shelf, ice storm, icebox, ice fishing, ice dancing, ice maker, ice scraper, ice tray",
-   "icehouse, ice floe, ice wine, ice hotel, ice palace, ice station, iceman, icefall, ice pellets, ice crystal, icebound, ice sculpture"]},
-  {n:'Things that start with “sun”',pre:'sun',t:[
-   "sunshine, sunflower, sunday, sunglasses, sunset, sunrise, sunburn, sun cream",
-   "sunscreen, sunbed, sundial, sunroof, sunbeam, sunlight, sundae, sunhat, suntan, sundress",
-   "sundown, sunstroke, sunspot, sunbather, sunlounger, sunbird, sunfish, sunblock, sunlamp, sunny side up, sunken",
-   "sundew, sunburst, suntrap, sundries, sunstone, sunup, sun king, sunless, sunbittern, sunderland"]},
-  {n:'Things that start with “water”',pre:'water',t:[
-   "waterfall, water bottle, watermelon, waterproof, water park, waterslide|water slide, water gun, watercolour|watercolor",
-   "waterloo, watermill, water polo, waterbed, watercress, waterfront, water lily, water pistol, water tank, water balloon, water fountain, water cooler, water skiing",
-   "waterline, watershed, waterway, waterlogged, water buffalo, water cannon, watertight, water wheel, water tower, water meter, water butt, water feature, water pump, water softener",
-   "water vole, water chestnut, water moccasin, water boatman, water table, water clock, water hyacinth, waterspout, water strider, water jump, water ouzel, water glass"]},
-  {n:'Things that start with “fire”',pre:'fire',t:[
-   "firework|fireworks, fire engine, fireman, fireplace, firefighter, fire alarm, fire escape, firefly",
-   "firewall, firewood, firelight, fire drill, fire exit, fire station, fire hydrant, firecracker, fireside, fire extinguisher, fire truck|firetruck, fire pit|firepit",
-   "fireproof, firearm, firebreak, firebrand, fire blanket, fire door, fire brigade, fire starter|firestarter, fire bucket, firebird, fire ant, fireboat, firelighter",
-   "fire salamander, firedamp, fireweed, firecrest, fire opal, fire eater, fire walker, firebug, firestorm, fire tower, fire warden"]}
+  {n:"Words that rhyme with “snow”",g:"Rhymes",ban:"snow",t:[
+   "go, no, know, show, flow, slow, grow, low, glow, blow, bow, owe, below, yellow, follow, arrow, hello, toe",
+   "throw, row, crow, dough, though, foe, doe, woe, roe, mow, tow, so, sew, oh, ago, stow, hollow, shallow, swallow, narrow, sparrow, marshmallow, bungalow, scarecrow, rodeo, patio, video, studio",
+   "mistletoe, window, shadow, pillow, elbow, borrow, widow, meadow, rainbow, fellow, tomorrow, potato, tomato, buffalo, hero, zero, piano, volcano, radio, bestow, aglow, undergo, outgrow, overflow, escrow, gusto, tiptoe, banjo, cargo, embryo, gazebo, mango, tornado, limbo, bingo, echo, halo, dodo, ego, memo, logo, tempo, calico, vertigo, domino, flamingo, pistachio",
+   "tableau, plateau, bureau, chateau, bordeaux, cameo, portfolio, stiletto, torpedo, innuendo, desperado, crescendo, avocado, apropos, dado, fiasco, beau, trousseau, rondeau, nouveau, gateau, bateau, manifesto, incognito, impresario, bravado, archipelago, braggadocio, quid pro quo, status quo, placebo, libido, tuxedo, kimono, cappuccino, espresso, mosquito, burrito, ratio, folio, oratorio, scenario, rococo, imbroglio"]},
+  {n:"Words that rhyme with “light”",g:"Rhymes",ban:"light",t:[
+   "night, right, bright, fight, tight, white, might, sight, mite, byte, website, twilight, fortnight, highlight, sunlight, flashlight, kite, bite, write, height",
+   "flight, site, quite, fright, knight, slight, cite, smite, sleight, trite, insight, frostbite, spotlight, headlight, skylight, limelight, starlight, candlelight, uptight, snakebite, lamplight, firelight, streetlight, outright",
+   "sprite, polite, ignite, invite, tonight, delight, despite, midnight, daylight, plight, blight, spite, rite, moonlight, unite, recite, alight, upright, airtight, excite, incite, forthright, oversight, overnight, playwright, eyesight, foresight, hindsight, watertight, skintight, expedite, finite, shipwright, birthright, reunite, requite",
+   "overbite, parasite, appetite, erudite, termite, copyright, satellite, dynamite, bight, wight, anchorite, meteorite, neophyte, stalactite, contrite, lite, troglodyte, socialite, suburbanite, cellulite, graphite, kryptonite, stalagmite, lignite, bauxite, pyrite, ammonite, trilobite, vegemite, marmite, acolyte, proselyte, recondite, bipartite, extradite, luddite, israelite, cordite, malachite, apatite"]},
+  {n:"Words that rhyme with “day”",g:"Rhymes",ban:"day",t:[
+   "say, play, way, may, stay, pay, today, away, hey, bay, ray, lay, they, weigh, prey, sleigh, jay, slay, birthday, holiday, halfway, doorway, grey|gray, tray",
+   "clay, okay|ok, stray, spray, delay, display, pray, sway, hay, neigh, nay, yay, fray, flay, bray, quay, whey, dismay, portray, relay, repay, replay, astray, ashtray, highway, railway, runway, subway, x-ray, hearsay, outweigh",
+   "bouquet, ballet, buffet, cliché, sorbet, array, betray, hooray, decay, convey, obey, survey, essay, beret, valet, duvet, parfait, gourmet, chalet, crochet, passé, risqué, touché, rosé, purée, sauté, downplay, faraway, stowaway, castaway, runaway, getaway, cabernet, consommé, émigré, communiqué, exposé, attaché, disarray, cafe",
+   "negligee, cabaret, soirée, fiancé, toupee, matinee, protégé, bidet, sachet, ricochet, croquet, papier mâché, sobriquet, tourniquet, bouclé, lamé, résumé, canapé, frappé, coupé, cachet, crudités, divorcée, flambé, glacé, décolleté, roué, habitué, pince-nez, au fait, blasé, outré, piqué"]},
+  {n:"Words that rhyme with “bear”",g:"Rhymes",ban:"bear",t:[
+   "chair, hair, air, pair, care, share, fair, there, where, stare, tear, hare, fare, lair, flair, ware, wear, square, dare, scare, bare, swear",
+   "flare, spare, glare, rare, mare, snare, pear, their, armchair, wheelchair, skincare, daycare, childcare, footwear, underwear, swimwear, elsewhere, nowhere, somewhere, anywhere, everywhere, hardware, software, unaware, blare, deckchair, pushchair, highchair, airfare",
+   "despair, compare, beware, aware, prepare, nightmare, unfair, millionaire, billionaire, questionnaire, repair, declare, affair, welfare, warfare, impair, ensnare, forswear, legionnaire, cookware, glassware, silverware, earthenware, tableware, kitchenware, stoneware, firmware, malware, ransomware, spyware, menswear, sportswear, knitwear, workwear, outerwear, au pair, corsair, fanfare, forebear, overbear, commissionaire",
+   "solitaire, éclair, doctrinaire, concessionaire, laissez-faire, thoroughfare, heir, ere, debonair, mohair, delaware, savoir faire, derrière, parterre, pied-à-terre, camembert, nom de guerre, misère, confrère, compère, première, disrepair, mal de mer, horsehair, crosshair, maidenhair, chinaware, ironware, homeware, au contraire, bergère, voltaire, baudelaire"]},
+  {n:"Words that rhyme with “tree”",g:"Rhymes",ban:"tree",t:[
+   "me, see, free, three, key, sea, bee, tea, knee, we, pee, wee, tv, thee, foresee, carefree, she, he, be, fee, ski, flea, pea",
+   "flee, agree, degree, glee, plea, tee, spree, lee, scree, brie, gee, decree, trustee, bumblebee, frisbee, chickpea, disagree, oversee, goatee, rupee, whoopee, sweet pea, dungarees",
+   "guarantee, referee, jubilee, trainee, refugee, absentee, marquee, settee, committee, employee, debris, chimpanzee, emcee, sightsee, payee, lessee, addressee, appointee, attendee, interviewee, retiree, divorcee, potpourri, filigree, repartee, manatee, tennessee, wannabe, grandee, levee, nominee, devotee, licensee",
+   "pedigree, tepee|teepee, banshee, apogee, bourgeoisie, jamboree, franchisee, amputee, escapee, detainee, fricassee, ennui, chickadee, pharisee, perigee, squeegee, garnishee, legatee, mortgagee, assignee, consignee, galilee, vis-à-vis, précis, esprit, tutee, scot-free, abductee, evacuee, enlistee, parolee"]},
+  {n:"Words that start with “back”",g:"Starts with",pre:"back",t:[
+   "backpack, backbone, backyard, backstage, backfire, background, backache, backhand, backwards, back pain, backing, backer, back off, back out, back seat, back door, back garden",
+   "backup, backstroke, backslash, backdrop, backgammon, backside, backlog, backpacker, backspace, backstab, backbench, backdate, backfill, backboard, backchat, back end, back to back, backcountry, back catalogue, backhanded, backpedal, backsplash, back pass, back heel, back row, back page, backflip",
+   "backbencher, backcomb, backfield, backlash, backlit, backrest, backroom, backsliding, backtrack, backwater, backwoods, backhander, back burner, backing track, backscratcher, backbeat, backcross, backdraught|backdraft, backline, backlot, backorder, backplate, backspin, backstabber, backstory, backswept, backcourt, backscatter, backwoodsman, backslide, backchannel, back nine, back office, back catalog",
+   "backformation, backsaw, backstay, backstitch, backstreet, backswing, backwash, backbite, backblocks, backcloth, backhoe, backlist, backmost, backstop, backbreaking, baksheesh|backsheesh, backsword, backstairs, backshift, backstretch, backronym, backscratching, backbreaker, backblast, backgrounder, backhouse, backmarker, backswimmer, backwind, backveld, backband, backsheet, backlighting"]},
+  {n:"Words that start with “sea”",g:"Starts with",pre:"sea",t:[
+   "seaside, seashell, seagull, seaweed, seahorse, sea lion, seafood, seal, season, sea turtle, seawater, seafront, sea view, sea air, seat, search, seabed, sea salt, seashore",
+   "seabird, seaport, seaplane, sea level, seasick, seamstress, seam, seance, seaman, sea urchin, seafarer, seascape, sea wall, sea change, sea captain, sea dog, sea cow, sea shanty, seasoning, sealant, seaway, sea monster, sea spray, sea mine",
+   "seagoing, seaworthy, seaboard, sea breeze, sea bass, sea bream, sea cucumber, sea eagle, sea kale, seafaring, sea fog, seamount, seaquake, sea mist, sea fret, sea legs, sea lane, sea loch, sea power, sea scout, sea serpent, sea sponge, sea stack, sea wasp, seaborne, seafloor, sea hare, sea lettuce, sea lily, seamark",
+   "sea buckthorn, sea holly, sea lavender, sea pink, seabeach, sea anemone, sea otter, sea snake, sea slug, sea squirt, sea spider, sea star, sea trout, sea aster, sea campion, sea fan, sea gooseberry, sea mouse, sea pen, sea potato, sea rocket, sea scorpion, sea squill, sea thrift, sea grape, sea oats, sea purslane, sea wormwood, sea cradle, seakeeping, sea robin, sea beet"]},
+  {n:"Words that start with “over”",g:"Starts with",pre:"over",t:[
+   "overcoat, overtake, overtime, overdue, overflow, overhead, overall, overboard, overjoyed, overdone, overcooked, overpriced, overpaid, overhear, overkill, overrun, overnight, overweight, overseas, overlook",
+   "overdraft, overdose, overheat, overpass, oversleep, overcast, overcome, overwork, overreact, overeat, overact, overdo, overdrive, overexcited, overfill, overhaul, overland, overlay, overpay, overprotective, overrated, overshoot, oversized|oversize, overspend, overstep, overtired, overturn, overuse, overview, overcautious",
+   "overbite, overcrowded, overgrown, overhang, overlap, overload, overpower, overrule, overshadow, oversight, overstate, overthrow, overture, overwhelm, overlord, overachiever, overcompensate, overexpose, overleaf, overqualified, oversee, oversell, overstock, overstretch, oversupply, overtax, overthink, overwrite, overzealous, overindulge, overestimate, overdress",
+   "overarm, overbearing, overcharge, overdub, overfish, overmantel, overreach, overripe, oversubscribed, overstay, overtone, overwinter, overshoe, overawe, overblown, overglaze, overleap, overlie, overmaster, overmatch, overmuch, overnighter, overplus, overprint, overset, oversew, overspill, overstrung, overtop, overweening, overwrought, overfond, overlock, overarching"]},
+  {n:"Words that start with “hand”",g:"Starts with",pre:"hand",t:[
+   "handbag, handshake, handle, handwriting, handsome, handy, handcuffs, handstand, hand gel, hand soap, handprint, handheld, handler, hand signal, hand in hand, handwritten, handful, handrail, handmade, hand towel, hand cream, handball",
+   "handbrake, hand sanitiser|hand sanitizer, handout, hand luggage, handkerchief, handyman, hand grenade, handbook, hand dryer, hand wash, hand-me-down, handspan, hand warmer, hand axe, handbell, hand blender, hand drill, hand fan, hand lens, hand whisk, hand truck, handpick, hand basin, handmaiden",
+   "handlebar, handsaw, handspring, hand puppet, handcart, handloom, handmaid, handgun, handset, hand mirror, hand pump, handover, handicap, handiwork, handicraft, handlist, handbreadth, handcar, handclap, handclasp, hand feed, handgrip, hand off, handwheel, hand wringing, handling, handedness, hand to mouth, hand to hand, hand glass",
+   "handfasting, handsel, handspike, handbill, handcraft, handhold, handline, handpicked, handrest, handsewn, handwork, handwoven, handbarrow, handfast, hand gallop, hand laid, handleless, handstaff, handicapper, handstroke, hand of god, handbasket, hand cannon, hand blown, handscroll, hand crank, hand press, handsbreadth"]},
+  {n:"Things that start with “water”",g:"Starts with",pre:"water",t:[
+   "waterfall, water bottle, watermelon, waterproof, water park, waterslide, water gun, watercolour|watercolor, watering can, water pipe, water bill, water fight, water sports, water bomb, water bird, water tap, water polo, water pistol, water balloon, water fountain",
+   "waterloo, watermill, waterbed, watercress, waterfront, water lily, water tank, water cooler, water skiing|water ski, waterworks, water main, water rat, water snake, water beetle, water jug, water filter, water heater, water jet, water supply, water vapour|water vapor, water wings, water aerobics, water birth, water damage, water pressure, water cycle, water company",
+   "waterline, watershed, waterway, waterlogged, water buffalo, water cannon, watertight, water wheel, water tower, water meter, water butt, water feature, water pump, water softener, water bear, water closet, water diviner|water divining, water garden, water hazard, water ice, water level, watermark, water music, water nymph, water power, water rail, water resistant, water retention, water scorpion, water shrew, water torture, water trough, waterfowl, watercourse, waterhole, waterman, waterside, water bearer",
+   "water vole, water chestnut, water moccasin, water boatman, water table, water clock, water hyacinth, waterspout, water strider, water jump, water ouzel, water glass, water bailiff, water bath, water biscuit, water blister, water dog, water dropwort, water fern, water flea, watergate, water gauge, water hemlock, water meadow, water milfoil, water mint, water parsnip, water pepper, water pipit, water plantain, water sapphire, water sign, water spaniel, water starwort, water violet, waterbuck, waterweed"]},
+  {n:"Things you find in a home",g:"Home & life",t:[
+   "sofa|couch, bed, table, chair, tv|television, fridge|refrigerator, wardrobe, lamp, door, window, stairs, shelf, washing machine, light, bin, toilet, bath, shower, cupboard, pillow, duvet, towel, phone, laptop",
+   "kettle, oven, sink, mirror, curtains, toaster, cushion, rug|carpet, microwave, bookshelf|bookcase, cooker, radiator, clock, dishwasher, tumble dryer, vacuum cleaner|hoover, iron, fireplace, sideboard, coffee table, doorbell, letterbox, houseplant|plant, desk, chest of drawers|drawers, blanket, blinds, wallpaper, plug socket|socket, light switch, printer, speaker, candle, vase, coat rack, shoe rack, bath mat, toilet roll|loo roll, hairdryer, remote control|remote",
+   "armchair, footstool, mantelpiece, doormat, bread bin, tea towel, smoke alarm, extension lead, coat hooks, fruit bowl, airing cupboard, plant pot, picture frame, boiler, ironing board, thermostat, skirting board, banister, door handle, dining table, step ladder, clothes airer, router|wifi router, carbon monoxide detector, dehumidifier, air freshener, lampshade, dimmer switch, radiator key, cistern, plunger, bath plug, laundry basket|washing basket, pedal bin, cat flap, extractor fan, hob, curtain rail, curtain pole, coving, loft hatch, chimney, gutter, drainpipe, porch light, hot water tank|hot water cylinder, doorstop, knife block, cable tidy",
+   "draught excluder|draft excluder, stopcock, fuse box|consumer unit, loft ladder, trouser press, dado rail, immersion heater, boot scraper, spice rack, key rack, gas meter, electricity meter, ceiling rose, picture rail, door knocker, cornice, boiler flue, fanlight, lintel, newel post, architrave, plinth, soffit, fascia, bargeboard, flashing, damp course, joist, rafter, purlin, rising main, header tank, expansion tank, thermostatic radiator valve|trv, airlock, waste trap, pelmet, finial, escutcheon, riser, stringer, bullnose, tie-backs, antimacassar, wall plug|rawl plug, ceiling hook, mullion, transom, parapet"]},
+  {n:"Things in a kitchen",g:"Home & life",t:[
+   "fridge, oven, sink, kettle, knife, fork, spoon, plate, cupboard, worktop, drawer, dishcloth, tap, bin, glass, teaspoon, tea towel, pan, mug, bowl, toaster, microwave, chopping board, whisk",
+   "grater, cup, freezer, dishwasher, frying pan|saucepan, cooker, spatula, grill, kitchen scales, jug, baking tray, wooden spoon, mixing bowl, tupperware, lid, tin opener|can opener, cling film, foil|tin foil|kitchen foil, kitchen roll, bin bag, washing up liquid, sponge, fridge magnet, bread bin, egg cup, teapot, coffee machine, tea bags, salt and pepper|salt shaker|pepper grinder, butter dish, kitchen scissors, sugar bowl, pedal bin, colander, peeler, sieve, ladle, rolling pin, tongs, oven glove",
+   "measuring jug, blender, slow cooker, air fryer, cutlery, cutlery drawer, draining board|dish rack, food processor, rice cooker, bread maker, juicer, pressure cooker, muffin tin, loaf tin, wok, casserole dish, griddle, ramekin, cooling rack, pizza cutter, ice cream scoop, measuring spoons, kitchen timer, potato masher|masher, slotted spoon, fish slice, pastry cutter, cake stand, gravy boat, corkscrew, bottle opener, tea strainer, egg timer, apple corer, carving knife, bread knife, stand mixer|kitchenaid, hand mixer",
+   "mandoline, garlic press, pestle and mortar|pestle|mortar, zester, melon baller, trivet, steamer, cafetière, lazy susan, potato ricer, pastry brush, skewer, meat tenderiser, bain marie, mezzaluna, madeleine tin, cake tin, salad spinner, cheese knife, tagine, paella pan, spurtle, skimmer, chinois, sugar thermometer|meat thermometer, blowtorch|kitchen blowtorch, dough scraper|bench scraper, tamis, cherry pitter|cherry stoner, nutcracker, egg poacher, pie funnel|pie bird, jelly mould, terrine, pasta machine|pasta maker, tortilla press, tawa, karahi, splatter guard, sous vide, ice cream maker, flan tin, bundt tin, proving basket|banneton, pizza stone, oyster knife"]},
+  {n:"Jobs",g:"Home & life",t:[
+   "doctor, teacher, nurse, police officer|policeman|policewoman|police, firefighter|fireman, builder, chef, farmer, shop assistant|shopkeeper, bus driver, delivery driver, footballer, singer, dancer, pilot, vet, plumber, waiter|waitress, lawyer, hairdresser, cleaner, dentist, electrician, postman|postie|postal worker",
+   "mechanic, soldier, actor, driver, scientist, engineer, carpenter, baker, butcher, artist, writer, judge, midwife, surgeon, receptionist, secretary, manager, programmer|software developer|developer, designer, photographer, musician, decorator|painter and decorator, bin man|refuse collector, lorry driver, train driver, fisherman, miner, sailor, estate agent, banker, barber, beautician, nanny, childminder, social worker, teaching assistant, dinner lady, caretaker, security guard, bouncer",
+   "dj, accountant, architect, barista, gardener, journalist, librarian, lifeguard, paramedic, pharmacist, taxi driver, bricklayer, butler, cashier, coastguard, florist, geologist, optician, physiotherapist, plasterer, roofer, surveyor, tailor, translator, anaesthetist, radiographer, dietitian, chiropodist|podiatrist, osteopath, chiropractor, dental hygienist, lab technician, air traffic controller, flight attendant|cabin crew|air hostess, tour guide, interpreter, auditor, actuary, economist, solicitor, barrister, bailiff, magistrate, prison officer, customs officer, traffic warden, lollipop lady|lollipop man, zookeeper, dog groomer, jockey",
+   "groundsman, window cleaner, scaffolder, welder, joiner, tiler, sculptor, potter, jeweller, watchmaker, upholsterer, undertaker|funeral director, vicar|priest, locksmith, cartographer, chimney sweep, cooper, farrier, fletcher, glazier, lexicographer, milliner, thatcher, wheelwright, apothecary, blacksmith, cobbler, taxidermist, stenographer, sommelier, pathologist, embalmer, cartwright, cordwainer, lamplighter, knocker upper|knocker-up, rag and bone man, costermonger, fishmonger, ironmonger, greengrocer, haberdasher, draper, tanner, chandler, saddler, gunsmith, goldsmith, silversmith, falconer"]},
+  {n:"Items of clothing",g:"Home & life",t:[
+   "shirt, trousers, jeans, dress, skirt, jumper, socks, coat, hat, jacket, shorts, t-shirt|tee shirt, pyjamas, scarf, gloves, hoodie, vest, bra, pants|knickers|boxers|underpants, shoes, boots, trainers, tie, underwear",
+   "leggings, tracksuit, cardigan, blouse, suit, swimsuit|swimming costume, raincoat, belt, tights, cap, beanie, sandals, slippers, swimming trunks|trunks, bikini, onesie, fleece, jumpsuit, sweatshirt, polo shirt, nightie|nightdress, dressing gown, blazer, wellies|wellingtons, flip flops, mittens, earmuffs, bobble hat, apron, vest top",
+   "waistcoat, dungarees, kilt, leotard, cravat, poncho, anorak, parka, kimono, sari, boiler suit|overalls, bodysuit, tuxedo, tank top, gilet, body warmer, bomber jacket, denim jacket, leather jacket, trench coat, duffle coat, mac|mackintosh, cagoule, windbreaker, pea coat, overcoat, chinos, cargo trousers|cargo pants, joggers|jogging bottoms|sweatpants, flares, pencil skirt, mini skirt, maxi dress, ball gown|gown, wedding dress, tutu, bandana, balaclava, beret, bowler hat, trilby, fedora, sun hat, braces, bow tie, corset, camisole, negligee, long johns|thermals, wetsuit",
+   "hijab, headscarf, turban, kurta, salwar kameez|shalwar kameez, lehenga, culottes, jodhpurs, cummerbund, pinafore, tabard, smock, cape, shawl, kaftan, sarong, bolero, jerkin, doublet, pantaloons, plus fours, tunic, stole, salopettes, abaya, thobe, burqa|burka, dhoti, lungi, sherwani, cheongsam|qipao, hanbok, dirndl, lederhosen, sporran, toga, chiton, codpiece, ruff, farthingale, crinoline, bustle, bloomers, petticoat, chemise, bodice, frock coat, morning coat, tailcoat|tails, dinner jacket"]},
+  {n:"Parts of the body",g:"Home & life",t:[
+   "head, arm, leg, hand, foot, eye, nose, mouth, finger, toe, ear, knee, teeth|tooth, hair, tummy|belly|stomach, bum|bottom|buttocks, neck, back, shoulder, elbow, nails|fingernail, face, skin, heart",
+   "brain, lungs, bones, chest, tongue, hip, ankle, wrist, thumb, eyelid, eyebrow, eyelash, chin, cheek, lip, forehead, waist, liver, kidney, bladder, intestines|gut|bowel, muscle, vein, artery, nerve, throat, jaw, rib, spine, skull, kneecap|patella, shin, calf, palm, knuckle, nostril, armpit, belly button|navel, big toe, little finger|pinky",
+   "ring finger, index finger, middle finger, tonsils, appendix, bicep, heel, thigh, triceps, hamstring, quadriceps|quads, glutes, abs|abdominals, pelvis, cartilage, tendon, ligament, oesophagus|gullet, windpipe|trachea, larynx|voice box, pancreas, spleen, gallbladder, diaphragm, womb|uterus, ovary, prostate, testicle, colon, rectum, retina, pupil, iris, cornea, eardrum, earlobe, adam's apple, breastbone|sternum, wisdom tooth, molar, incisor, gum, cuticle, sole, arch, funny bone, collarbone|clavicle, shoulder blade|scapula, tailbone|coccyx, achilles tendon",
+   "temple, septum, tibia, fibula, femur, humerus, philtrum, uvula, nape, instep, hypothalamus, cerebellum, hippocampus, amygdala, pituitary gland, thyroid, adrenal gland, lymph node, aorta, vena cava, ventricle, atrium, alveoli, bronchi, epiglottis, pharynx, duodenum, ileum, jejunum, caecum, sphincter, ulna, radius, carpal, metacarpal, phalanx|phalanges, tarsal, metatarsal, talus, calcaneus|heel bone, vertebra, sacrum, ilium, mandible, maxilla, cheekbone|zygomatic, cranium, hyoid, stapes|stirrup, incus|anvil"]},
+  {n:"Capital cities",g:"Places & travel",t:[
+   "london, paris, rome, madrid, berlin, washington dc|washington, tokyo, beijing|peking, dublin, moscow, cairo, delhi|new delhi, amsterdam, athens, lisbon, mexico city, bangkok, canberra, ottawa, brussels, vienna, stockholm",
+   "edinburgh, cardiff, belfast, oslo, copenhagen, helsinki, warsaw, budapest, prague, nairobi, seoul, wellington, buenos aires, havana, kyiv|kiev, ankara, tehran, baghdad, islamabad, kabul, manila, kuala lumpur, singapore, hanoi, taipei, bern|berne, riyadh, doha, abu dhabi, jerusalem, beirut, lima, santiago, bogota, jakarta",
+   "muscat, kuwait city, amman, damascus, tripoli, tunis, algiers, rabat, khartoum, addis ababa, kampala, kigali, lusaka, harare, pretoria, maputo, luanda, kinshasa, accra, abuja, dakar, caracas, quito, la paz, brasilia, panama city, san jose, kingston, santo domingo, nassau, colombo, dhaka, phnom penh, bucharest, sofia, belgrade, zagreb, sarajevo, minsk, luxembourg, nicosia, astana, tashkent, baku, port of spain, bridgetown, pyongyang, montevideo, asuncion, tirana",
+   "reykjavik, valletta, bratislava, kathmandu, tbilisi, tallinn, riga, vilnius, ljubljana, ulaanbaatar, thimphu, ashgabat, bishkek, port moresby, yerevan, skopje, podgorica, pristina, chisinau, andorra la vella, vaduz, san marino, monaco, dushanbe, manama, sanaa, mogadishu, djibouti, asmara, juba, n'djamena, niamey, ouagadougou, nouakchott, conakry, freetown, monrovia, yamoussoukro, lome, porto novo, yaounde, bangui, brazzaville, libreville, malabo, sao tome, windhoek, gaborone, maseru, mbabane"]},
+  {n:"Countries of the world",g:"Places & travel",t:[
+   "france, spain, italy, germany, uk|united kingdom|britain|great britain, england, scotland, wales, poland, greece, portugal, usa|america|united states|united states of america, australia, india, china, japan, canada, mexico, brazil, russia, egypt, turkey, ireland, netherlands|holland",
+   "belgium, sweden, norway, denmark, switzerland, austria, finland, new zealand, south africa, argentina, thailand, vietnam, pakistan, bangladesh, indonesia, malaysia, singapore, south korea|korea, north korea, iran, iraq, israel, saudi arabia, united arab emirates|uae|emirates, kenya, nigeria, morocco, jamaica, cuba, chile, peru, colombia, croatia, hungary, czech republic|czechia, ukraine, iceland, cyprus, malta, philippines",
+   "sri lanka, nepal, afghanistan, syria, lebanon, jordan, qatar, romania, bulgaria, serbia, slovakia, slovenia, lithuania, latvia, estonia, albania, luxembourg, monaco, liechtenstein, andorra, san marino, vatican city|vatican, montenegro, north macedonia|macedonia, moldova, belarus, bosnia and herzegovina|bosnia, kosovo, georgia, armenia, azerbaijan, kazakhstan, uzbekistan, mongolia, taiwan, cambodia, laos, myanmar|burma, bhutan, maldives, oman, kuwait, bahrain, yemen, ethiopia, ghana, tanzania, uganda, zimbabwe, zambia",
+   "botswana, namibia, mozambique, angola, senegal, ivory coast|cote d'ivoire, cameroon, sudan, libya, tunisia, algeria, somalia, madagascar, mauritius, seychelles, venezuela, ecuador, bolivia, uruguay, paraguay, costa rica, panama, guatemala, honduras, nicaragua, el salvador, belize, haiti, dominican republic, bahamas, barbados, trinidad and tobago|trinidad, fiji, papua new guinea, samoa, tonga, tuvalu, nauru, kiribati, vanuatu, solomon islands, palau, micronesia, marshall islands, timor-leste|east timor, brunei, turkmenistan, tajikistan, kyrgyzstan, djibouti"]},
+  {n:"Famous landmarks",g:"Places & travel",t:[
+   "eiffel tower, big ben, statue of liberty, colosseum, taj mahal, great wall of china, pyramids, buckingham palace, london eye, tower bridge, stonehenge, sydney opera house, leaning tower of pisa, golden gate bridge, niagara falls, grand canyon, mount everest|everest, blackpool tower, angel of the north, great barrier reef, machu picchu, white house",
+   "mount rushmore, tower of london, empire state building, brandenburg gate, acropolis, christ the redeemer, petra, edinburgh castle, windsor castle, st paul's cathedral|st pauls, westminster abbey, houses of parliament, trafalgar square, nelson's column, the shard, wembley stadium|wembley, hollywood sign, times square, brooklyn bridge, central park, mount fuji, kremlin, red square, st peter's basilica|st peters, sistine chapel, pompeii, parthenon, louvre, notre dame, arc de triomphe, sacre coeur, moulin rouge, sphinx|great sphinx, valley of the kings, dead sea, burj khalifa, loch ness, giant's causeway, kilimanjaro|mount kilimanjaro, sugarloaf mountain",
+   "easter island|moai, angkor wat, sydney harbour bridge, lincoln memorial, alcatraz, yellowstone, sagrada familia, forbidden city, blue mosque|hagia sophia, trevi fountain, atomium, alhambra, versailles, neuschwanstein, hoover dam, space needle, cn tower, uluru|ayers rock, table mountain, the gherkin, hadrian's wall, white cliffs of dover, cliffs of moher, victoria falls, chichen itza, terracotta army, tiananmen square, golden temple, petronas towers, marina bay sands, gardens by the bay, twelve apostles, washington monument, the capitol|capitol building, liberty bell, yosemite, old faithful, palm jumeirah|the palm, mont saint michel|mont st michel, eden project, york minster, durham cathedral, canterbury cathedral, roman baths|bath abbey, blenheim palace, hampton court, kew gardens, british museum, natural history museum, royal albert hall",
+   "stirling castle, caernarfon castle, snowdon, ben nevis, brighton pier, clifton suspension bridge, forth bridge, mount etna|etna, vesuvius, matterhorn, mont blanc, guggenheim, rialto bridge, grand canal, st mark's square, duomo|florence cathedral, cinque terre, amalfi coast, blue lagoon, little mermaid, berlin wall, reichstag, cologne cathedral, charles bridge, prague castle, santorini, dubrovnik, meteora, borobudur, bagan, sigiriya, stari most, skara brae, fingal's cave, ha long bay, ponte vecchio, bridge of sighs, cerne abbas giant, uffington white horse, avebury, glastonbury tor, tintagel, jodrell bank, spinnaker tower, humber bridge, severn bridge, pont du gard, fisherman's bastion, chain bridge, cappadocia"]},
+  {n:"Languages",g:"Places & travel",t:[
+   "english, french, spanish, german, italian, chinese|mandarin, japanese, arabic, portuguese, russian, dutch, greek, latin, polish, turkish, korean, welsh, urdu, punjabi, bengali, swedish, hindi",
+   "norwegian, danish, irish|irish gaelic, scottish gaelic|gaelic, cantonese, thai, vietnamese, hebrew, swahili, persian|farsi, tamil, gujarati, malay, indonesian, tagalog|filipino, romanian, hungarian, czech, ukrainian, finnish, icelandic, bulgarian, croatian, serbian, slovak, albanian, afrikaans",
+   "armenian, georgian, nepali, sinhala|sinhalese, burmese, khmer|cambodian, lao, kazakh, uzbek, dari, somali, hausa, yoruba, igbo, luxembourgish, flemish, catalan, basque, galician, esperanto, sign language|bsl|british sign language, marathi, telugu, kannada, malayalam, tibetan, hokkien, javanese, cebuano, tongan, samoan, fijian, maori, hawaiian, inuktitut|inuit, navajo, cherokee, quechua, guarani, nahuatl, creole|haitian creole, yiddish, aramaic, old english|anglo-saxon, old norse, ancient greek, sanskrit, zulu, xhosa, amharic",
+   "pashto, kurdish, mongolian, maltese, latvian, estonian, lithuanian, cornish, manx, breton, ladino, romani, coptic, pali, akkadian, sumerian, hittite, phoenician, etruscan, occitan, provençal, corsican, sardinian, sicilian, neapolitan, venetian, friulian, romansh, frisian, faroese, sami, karelian, chechen, ossetian, tatar, bashkir, kyrgyz, tajik, turkmen, azerbaijani|azeri, balochi, sylheti, bhojpuri, konkani, tulu, dzongkha, hmong, shan, karen, malagasy"]},
+  {n:"Cities and towns in the UK",g:"Places & travel",t:[
+   "london, manchester, birmingham, liverpool, leeds, glasgow, edinburgh, cardiff, bristol, newcastle, sheffield, nottingham, belfast, brighton, oxford, cambridge, york, bath, leicester, plymouth, southampton, portsmouth, blackpool",
+   "norwich, aberdeen, coventry, derby, hull, stoke|stoke-on-trent, wolverhampton, sunderland, exeter, canterbury, chester, durham, lincoln, inverness, swansea, dundee, reading, bournemouth, milton keynes, luton, northampton, ipswich, peterborough, bradford, preston, middlesbrough, swindon, watford, slough, bolton, blackburn, stockport, warrington, wigan, huddersfield, doncaster, rotherham, barnsley, wakefield, halifax",
+   "harrogate, scarborough, whitby, windsor, stratford upon avon|stratford, cheltenham, gloucester, worcester, newport, salisbury, winchester, carlisle, hereford, shrewsbury, telford, stafford, lichfield, warwick, rugby, banbury, aylesbury, basingstoke, guildford, woking, crawley, hastings, eastbourne, dover, folkestone, margate, maidstone, tunbridge wells, chelmsford, colchester, southend|southend-on-sea, basildon, stevenage, st albans, bedford, ely, great yarmouth, lowestoft, king's lynn, bury st edmunds, lancaster, kendal, keswick, southport, st helens, crewe",
+   "macclesfield, buxton, chesterfield, mansfield, grantham, newark, skegness, scunthorpe, grimsby, bridlington, darlington, hartlepool, gateshead, south shields, ayr, paisley, stirling, falkirk, dunfermline, perth, st andrews, fort william, oban, bridgend, llanelli, carmarthen, tenby, aberystwyth, llandudno, bangor, caernarfon, wrexham, merthyr tydfil|merthyr, derry|londonderry, lisburn, newry, armagh, truro, falmouth, penzance, st ives, newquay, torquay, taunton, yeovil, weston-super-mare, weymouth, poole, dorchester, ripon"]},
+  {n:"Fruits",g:"Food & drink",t:[
+   "apple, banana, orange, grape, strawberry, pear, lemon, pineapple, clementine, mango, peach, cherry, kiwi, melon, plum, raspberry, blueberry, lime, watermelon",
+   "tangerine, satsuma, blackcurrant, date, apricot, nectarine, grapefruit, blackberry, coconut, fig, pomegranate, passion fruit, papaya, cranberry, avocado, olive, raisin, sultana, prune, mandarin, cantaloupe, honeydew melon|honeydew, lychee, dragon fruit|pitaya, gooseberry",
+   "redcurrant, bilberry, mulberry, elderberry, loganberry, jackfruit, plantain, star fruit, prickly pear, greengage, persimmon|sharon fruit|kaki, kumquat, guava, quince, damson, physalis|cape gooseberry, pomelo, blood orange, seville orange, ugli fruit, whitecurrant, crab apple, sloe, medlar, rambutan, durian, nashi pear|asian pear, mirabelle, pluot, galia melon",
+   "tamarillo, loquat, longan, mangosteen, soursop, custard apple, cherimoya, jujube, salak|snake fruit, feijoa, tayberry, boysenberry, ackee, breadfruit, pawpaw|papaw, sapodilla, mamey, cloudberry, lingonberry, huckleberry, juneberry|serviceberry, dewberry, marionberry, miracle fruit, yuzu, calamansi, finger lime, bergamot, citron, buddha's hand, tangelo, jostaberry, chokeberry|aronia, sea buckthorn, goji berry, acai, noni, langsat, jabuticaba, marula, kiwano|horned melon, pepino, canary melon, charentais, bullace, cherry plum, barberry, lucuma, cupuacu"]},
+  {n:"Vegetables",g:"Food & drink",t:[
+   "carrot, potato, onion, peas, broccoli, tomato, cucumber, cabbage, sweetcorn|corn, cauliflower, lettuce, spinach, mushroom, pepper|bell pepper, leek, sprouts|brussels sprouts, green beans|beans, courgette, celery, parsnip",
+   "turnip, swede, beetroot, aubergine|eggplant, sweet potato, garlic, radish, asparagus, kale, pumpkin, butternut squash|squash, spring onion, runner beans, chickpeas, lentils, mangetout, broad beans, baby corn, marrow, pak choi|bok choy, rocket, watercress, artichoke, fennel, shallot, red onion, red cabbage, savoy cabbage, iceberg lettuce, cherry tomato, chilli|chilli pepper, jalapeno, ginger",
+   "kohlrabi, celeriac, okra, chicory, endive, chard|swiss chard, samphire, romanesco, jerusalem artichoke, mooli|daikon, tenderstem broccoli, purple sprouting broccoli, globe artichoke, yam, cassava, taro, edamame|soya beans|soybean, bean sprouts, water chestnut, bamboo shoots, lotus root, radicchio, lamb's lettuce|corn salad, little gem, romaine|cos lettuce, mustard greens, collard greens, spring greens, cavolo nero, sorrel, wild garlic|ramsons, sugar snap peas|sugar snaps, petit pois, borlotti beans, cannellini beans, kidney beans, black beans, butter beans|lima beans, haricot beans, split peas, marrowfat peas|mushy peas, horseradish, salsify, cardoon, tatsoi, rhubarb",
+   "scorzonera, oca, ulluco, yacon, jicama, chayote|christophene, tomatillo, pattypan squash, crookneck squash, spaghetti squash, acorn squash, delicata, kabocha, gem squash, hubbard squash, turk's turban, cucamelon, achocha, burdock, skirret, hamburg parsley, black radish, watermelon radish, flageolet, asparagus pea, winged bean, yardlong bean, purslane, agretti|monk's beard, good king henry, orache, amaranth leaves|callaloo, bitter gourd|karela, bottle gourd|lauki|dudhi, drumstick|moringa, snake gourd, tindora|ivy gourd, frisée, mizuna, turnip tops, beet greens, fiddleheads, nettle, pinto beans, sea kale"]},
+  {n:"Herbs and spices",g:"Food & drink",t:[
+   "salt, pepper, basil, parsley, mint, thyme, rosemary, cinnamon, oregano, paprika, cumin, coriander, ginger, garlic, chilli|chilli flakes|chilli powder, curry powder, turmeric, nutmeg, mixed herbs, bay leaf|bay leaves",
+   "sage, dill, cloves, cardamom, vanilla, mustard|mustard seeds, cayenne, garam masala, chives, tarragon, fennel seeds|fennel, star anise, allspice, lemongrass, saffron, mace, marjoram, five spice|chinese five spice, mixed spice, peppercorns|black pepper, white pepper, sea salt, smoked paprika, onion powder, garlic powder, celery salt, mustard powder, poppy seeds, sesame seeds, caraway, juniper, horseradish, wasabi",
+   "sumac, fenugreek, za'atar, lovage, sorrel, chervil, galangal, nigella, ras el hanout, annatto, lavender, asafoetida|hing, aniseed|anise, liquorice root|liquorice, black lime|dried lime, amchoor|amchur|mango powder, tamarind, kaffir lime leaves|lime leaves, curry leaves, pandan, thai basil, holy basil|tulsi, lemon balm, lemon verbena, borage, hyssop, savory|summer savory|winter savory, ajwain|carom seeds, black cardamom, szechuan pepper|sichuan pepper, pink peppercorns, herbes de provence, bouquet garni, italian seasoning, cajun seasoning|cajun spice, jerk seasoning, tandoori masala, chaat masala, kala namak|black salt, pink salt|himalayan salt, chipotle, ancho, habanero, scotch bonnet, bird's eye chilli, piri piri|peri peri, pimenton, dukkah, berbere",
+   "epazote, orris root, mahlab, long pepper, grains of paradise, cubeb, tasmanian pepper|mountain pepper, sansho, shichimi|togarashi, baharat, fines herbes, old bay, sambar powder, panch phoron, advieh, hawaij, mitmita, smoked salt, tonka bean, mastic, urfa chilli|urfa biber, aleppo pepper, guajillo, pasilla, ghost pepper|bhut jolokia, carolina reaper, gochugaru, fennel pollen, rose petals, bergamot, angelica, sweet cicely, costmary, rue, tansy, woodruff, salad burnet, bee balm|bergamot herb, perilla|shiso, vietnamese coriander|rau ram, culantro, hoja santa, kaffir lime, nasturtium, chamomile, feverfew, wormwood, mugwort, nigella seeds|kalonji, celery seed"]},
+  {n:"Cheeses",g:"Food & drink",t:[
+   "cheddar, brie, mozzarella, parmesan, feta|greek feta, stilton, edam, gouda, camembert, halloumi|cypriot halloumi, red leicester, cream cheese|philadelphia, cottage cheese, goat's cheese, babybel, dairylea|cheese spread, cheese strings|string cheese, blue cheese, gruyère, mascarpone, ricotta, emmental|swiss",
+   "wensleydale, double gloucester, cheshire, gorgonzola, roquefort|roquefort papillon, manchego, pecorino, paneer, burrata, monterey jack, jarlsberg, boursin, lancashire, caerphilly, port salut, danish blue, dolcelatte, applewood|smoked cheese, havarti, provolone, laughing cow, primula, leerdammer, grana padano, taleggio, raclette, bocconcini, quark, fromage frais, cornish yarg, stinking bishop, comté, reblochon, brie de meaux, american cheese|kraft singles|cheese slices, pepper jack, mozzarella di bufala|buffalo mozzarella, labneh",
+   "munster|muenster, limburger, epoisses, vacherin, saint agur, appenzeller, fontina, asiago, scamorza, caciocavallo, ricotta salata, maasdam, beemster, old amsterdam, tête de moine, sbrinz, tilsit, cambozola, shropshire blue, blacksticks blue, cashel blue, montgomery cheddar, lincolnshire poacher, tunworth, baron bigod, stichelton, black bomber|snowdonia black bomber, crowdie, dunlop, isle of mull cheddar, velveeta, colby, kefalotyri, graviera, kasseri, manouri, mizithra, bryndza, oscypek, kashkaval, sulguni, brunost|gjetost, queso fresco, cotija, oaxaca, pecorino romano, pecorino sardo, castelmagno, robiola, stracchino|crescenza",
+   "montasio, piave, toma, canestrato, chèvre, crottin, valençay, pont l'évêque, livarot, neufchâtel, chaource, langres, morbier, tomme|tomme de savoie, beaufort, abondance, cantal, saint nectaire, ossau-iraty, bleu d'auvergne, fourme d'ambert, mimolette, boulette d'avesnes, maroilles, brillat-savarin, délice de bourgogne, saint félicien, saint marcellin, banon, picodon, pélardon, rocamadour, selles-sur-cher, pouligny-saint-pierre, sainte-maure, chabichou, ogleshield, berkswell, spenwood, wigmore, ticklemore, perl las, perl wen, y fenni, hafod, gorwydd caerphilly, caboc, lanark blue, bishop kennedy, teviotdale"]},
+  {n:"Drinks",g:"Food & drink",t:[
+   "water, tea, coffee, juice, milk, coke, lemonade, orange juice, beer, wine, cider, gin, vodka, whisky|whiskey|scotch, rum, champagne, prosecco, lager, hot chocolate, smoothie, milkshake, fanta, pepsi, sprite",
+   "apple juice, ginger beer, tonic|tonic water, cola, squash, cordial, ribena, iced tea, brandy, tequila, sherry, port, baileys, pimms, mojito, margarita, cosmopolitan, pina colada, gin and tonic|g and t, bloody mary, espresso martini, martini, ale, stout|guinness, ipa, bitter, shandy, irn bru, dr pepper, lucozade, red bull, monster, vimto, tango, 7up, lilt, oasis, capri sun, fruit shoot, robinsons",
+   "elderflower cordial|elderflower, iced coffee, latte, cappuccino, americano, flat white, espresso, mocha, green tea, peppermint tea, camomile tea|chamomile tea, earl grey, english breakfast tea, builder's tea, herbal tea, fruit tea, chai|chai latte, matcha, bubble tea|boba, kombucha, ginger ale, root beer, cream soda, bitter lemon, cherryade, limeade, coconut water, oat milk|almond milk|soya milk|plant milk, protein shake, energy drink, sports drink, slush|slushie|slush puppie, frappuccino, horlicks, ovaltine, bovril, barley water, lassi, ayran, kefir, yerba mate|mate, horchata, sangria, mulled wine, eggnog, hot toddy, snowball, buck's fizz|mimosa, bellini, kir royale",
+   "aperol spritz|spritz, negroni, old fashioned, manhattan, whisky sour, daiquiri, caipirinha, mai tai, long island iced tea, sex on the beach, tequila sunrise, white russian, black russian, screwdriver, moscow mule, dark and stormy, cuba libre, pisco sour, tom collins, mint julep, singapore sling, blue lagoon, woo woo, porn star martini, jägerbomb, sambuca, jägermeister, absinthe, ouzo, grappa, limoncello, amaretto, cointreau, kahlua, tia maria, advocaat, cherry brandy, sloe gin, mead, perry, scrumpy, wheat beer|weissbier, pilsner, porter, mild, sake, cognac, vermouth, campari, pastis"]},
+  {n:"Animals at the zoo",g:"Nature & animals",t:[
+   "lion, tiger, elephant, giraffe, monkey, zebra, bear, polar bear, penguin, gorilla, hippo|hippopotamus, rhino|rhinoceros, kangaroo, crocodile, panda, snake, camel, flamingo, cheetah, leopard, wolf, parrot, koala, chimpanzee|chimp",
+   "meerkat, lemur, sloth, otter, tortoise, alligator, ostrich, buffalo, lynx, jaguar, puma|cougar|mountain lion, emu, orangutan, red panda, tapir, baboon, gibbon, turtle, lizard, iguana, frog, tarantula|spider, scorpion, bat, owl, eagle, vulture, pelican, peacock, python|boa constrictor|boa, cobra, gecko, chameleon, axolotl, piranha, seal, sea lion, grizzly bear|brown bear, black bear, white tiger",
+   "snow leopard, black panther|panther, bobcat, reindeer|caribou, moose|elk, deer, bison, llama, alpaca, yak, capybara, porcupine, armadillo, anteater|giant anteater, raccoon, skunk, wombat, tasmanian devil, komodo dragon, warthog, hyena, wildebeest, antelope, gazelle, ibex, mongoose, okapi, binturong, aardvark, pangolin, wallaby, serval, tamarin, quokka, caracal, aye aye, fossa, kinkajou, coati, dik dik, kudu, oryx, bongo, takin, babirusa, numbat, quoll, echidna, platypus, bilby",
+   "sun bear, sloth bear, spectacled bear, clouded leopard, ocelot, asian elephant, african elephant, przewalski's horse, pygmy hippo, red river hog, peccary, muntjac, eland, nyala, sitatunga, waterbuck, impala, springbok, gemsbok, addax, blackbuck, gerenuk, bactrian camel, dromedary, guanaco, vicuna, musk ox, water buffalo, gaur, markhor, tree kangaroo, wallaroo, sugar glider, possum, capuchin, squirrel monkey, spider monkey, howler monkey, macaque, mandrill, colobus, langur, proboscis monkey, marmoset, slow loris, bushbaby|galago, tarsier, sifaka, ring-tailed lemur, giant otter"]},
+  {n:"Birds",g:"Nature & animals",t:[
+   "robin, blackbird, pigeon, sparrow, crow, seagull|gull, duck, eagle, owl, swan, goose, parrot, penguin, ostrich, flamingo, peacock, chicken|hen, turkey, magpie, puffin, woodpecker, hawk, vulture, kingfisher",
+   "hummingbird, canary, budgie|budgerigar, cockatoo, dove, raven, blue tit, wren, starling, pheasant, heron, kestrel, buzzard, jay, goldfinch|finch, chaffinch, thrush, nightingale, skylark, cuckoo, swallow, cormorant, albatross, pelican, toucan, rook, jackdaw, falcon, peregrine|peregrine falcon, osprey, red kite, stork, crane|common crane, emu, kiwi, macaw, cockatiel, lovebird, partridge, grouse",
+   "quail, mallard, moorhen, coot, lapwing|peewit, curlew, oystercatcher, guillemot, gannet, tern, bullfinch, greenfinch, great tit, long-tailed tit, nuthatch, treecreeper, dunnock, barn owl, tawny owl, sparrowhawk, golden eagle, bald eagle, kookaburra, cassowary, condor, roadrunner, cardinal, blue jay, wagtail|pied wagtail, grey wagtail, yellow wagtail, dipper, redstart, wheatear, stonechat, blackcap, whitethroat, chiffchaff, willow warbler, reed warbler, goldcrest, firecrest, coal tit, marsh tit, bearded tit, siskin, linnet, redpoll, hawfinch, crossbill",
+   "brambling, yellowhammer, reed bunting, snow bunting, tree sparrow, house sparrow, waxwing, fieldfare, redwing, mistle thrush, song thrush, hoopoe, bee-eater, golden oriole, green woodpecker, great spotted woodpecker, little owl, long-eared owl, short-eared owl, snowy owl, eagle owl, hobby, merlin, goshawk, marsh harrier, hen harrier, white-tailed eagle|sea eagle, honey buzzard, capercaillie, black grouse, ptarmigan, red grouse, corncrake, water rail, chough, hooded crow, carrion crow, shag, kittiwake, skua, petrel, shearwater, fulmar, eider, teal, wigeon, pintail, shoveler, pochard, tufted duck"]},
+  {n:"Flowers",g:"Nature & animals",t:[
+   "rose, daisy, tulip, daffodil, sunflower, lily, poppy, bluebell, lavender, orchid, carnation, buttercup, dandelion, snowdrop, pansy, violet, marigold, primrose, crocus, lilac, foxglove, iris, hyacinth, geranium",
+   "peony, chrysanthemum, hydrangea, jasmine, honeysuckle, sweet pea, forget-me-not, dahlia, cherry blossom|blossom, lotus, water lily, lily of the valley, gypsophila|baby's breath, petunia, begonia, fuchsia, magnolia, camellia, thistle, heather, gorse, cornflower, snapdragon, hollyhock, wisteria, clematis, freesia, gerbera, anemone, azalea, rhododendron, poinsettia, amaryllis, cyclamen, busy lizzie|impatiens, lobelia, nasturtium, cosmos, zinnia, aster",
+   "delphinium, lupin, gladiolus, hibiscus, bougainvillea, bird of paradise|strelitzia, edelweiss, cowslip, columbine|aquilegia, hellebore|christmas rose, sweet william, wallflower, stock, nicotiana, verbena, salvia, lavatera, calendula|pot marigold, californian poppy, oriental poppy, welsh poppy, love-in-a-mist|nigella, larkspur, phlox, astilbe, aconite|monkshood, protea, oleander, frangipani|plumeria, anthurium, moth orchid|phalaenopsis, bee orchid, lady's slipper, gentian, saxifrage, aubretia, campanula|bellflower, canterbury bells, scabious, knapweed, ox-eye daisy, oxlip, primula, auricula, polyanthus, snake's head fritillary|fritillary, crown imperial, allium, agapanthus, crocosmia|montbretia",
+   "red hot poker|kniphofia, echinacea|coneflower, rudbeckia|black-eyed susan, helenium, heuchera, sedum, penstemon, achillea|yarrow, sea holly|eryngium, globe thistle|echinops, geum, bleeding heart|dicentra, wood anemone, celandine|lesser celandine, wild garlic|ramsons, red campion, ragged robin, herb robert, speedwell, harebell, bird's foot trefoil, vetch, clover, meadowsweet, purple loosestrife, rosebay willowherb|fireweed, marsh marigold|kingcup, yellow flag|flag iris, ragwort, chamomile, feverfew, valerian, comfrey, borage, evening primrose, honesty, teasel, mullein, cow parsley, dog rose, tiger lily, stargazer lily|stargazer, calla lily|arum lily, day lily|hemerocallis, ranunculus, grape hyacinth|muscari, winter aconite, periwinkle|vinca, passion flower, morning glory"]},
+  {n:"Trees",g:"Nature & animals",t:[
+   "oak, pine, birch, willow, apple, maple, palm, ash, beech, elm, cherry, fir|christmas tree, spruce, sycamore, horse chestnut|chestnut|conker tree, holly, yew, cedar, olive, redwood, monkey puzzle, plum, pear, orange",
+   "lemon, fig, lime|linden, poplar, eucalyptus|gum tree, rowan|mountain ash, hawthorn, hazel, alder, larch, juniper, sequoia|giant sequoia|wellingtonia, baobab, mahogany, ebony, teak, plane|london plane, walnut, elder, blackthorn|sloe, silver birch, weeping willow, crab apple, sweet chestnut, cypress|leylandii|leyland cypress, banyan, mangrove, jacaranda, ginkgo|maidenhair tree, acacia, mulberry, almond, peach, apricot, avocado, mango, cocoa|cacao, coffee, rubber tree, cork oak",
+   "scots pine, douglas fir, norway spruce, blue spruce, cedar of lebanon, japanese maple|acer, magnolia, laurel|bay|bay laurel, date palm, coconut palm, bonsai, hornbeam, whitebeam, aspen, wych elm, field maple, sugar maple, red maple, norway maple, dawn redwood, bristlecone pine, sessile oak, english oak|pedunculate oak, holm oak, turkey oak, red oak, corsican pine, lodgepole pine, stone pine|umbrella pine, monterey pine, noble fir, nordmann fir, sitka spruce, western red cedar, atlas cedar, deodar, swamp cypress, lawson cypress, thuja, hemlock, wollemi pine, kauri, totara, rimu, pohutukawa, jarrah, karri, flame tree, tulip tree, tamarind",
+   "neem, peepal|sacred fig|bodhi tree, sandalwood, rosewood, ironwood, balsa, kapok, ceiba, breadfruit, jackfruit, durian, lychee, cashew, pistachio, pecan, hickory, black walnut, box elder, wild service tree, black poplar, white poplar, lombardy poplar, goat willow|pussy willow, white willow, crack willow, osier, buckthorn, spindle, dogwood, guelder rose, wayfaring tree, english elm, zelkova, hackberry, cherry laurel, portugal laurel, box, strawberry tree|arbutus, judas tree, laburnum, robinia|false acacia, honey locust, catalpa|indian bean tree, paulownia|foxglove tree, handkerchief tree|dove tree, sweet gum|liquidambar, persian ironwood|parrotia, katsura, irish yew, carob"]},
+  {n:"Sea creatures",g:"Nature & animals",t:[
+   "fish, shark, whale, dolphin, crab, octopus, jellyfish|moon jellyfish, starfish, seal, lobster, squid, seahorse, turtle, eel, prawn, shrimp, clam, oyster, mussel, stingray, sea lion, walrus, penguin, orca|killer whale",
+   "cod, salmon, tuna, sardine, sea urchin, coral, manta ray, swordfish, narwhal, barracuda, sea anemone|anemone, cuttlefish, plankton, krill, hammerhead|hammerhead shark, porpoise, manatee, great white shark|great white, blue whale, humpback whale|humpback, sperm whale, beluga, minke whale, pilot whale, bottlenose dolphin, leatherback, scallop, cockle, whelk, winkle|periwinkle, limpet, barnacle, langoustine, hermit crab, spider crab, king crab, haddock, plaice, mackerel, herring",
+   "anchovy, sea bass, sea bream, halibut, sole, turbot, monkfish, pollock|pollack, hake, whiting, skate, basking shark, whale shark, tiger shark, bull shark, nurse shark, dogfish, sea otter, dugong, elephant seal, leopard seal, grey seal, flying fish, parrotfish, clownfish, angelfish, pufferfish, lionfish, moray eel, conger eel, sunfish|mola mola, marlin, sailfish, giant squid, blue-ringed octopus, nautilus, sea cucumber, sponge|sea sponge, box jellyfish, portuguese man o' war|man o war|portuguese man of war, sea slug|nudibranch, sea snake, hawksbill, green turtle, loggerhead, fiddler crab, mantis shrimp, red mullet, john dory, gurnard",
+   "electric ray, sawfish, lemon shark, mako, thresher, blacktip reef shark|reef shark, wobbegong, angel shark, catshark, goblin shark, greenland shark, frilled shark, megamouth, cookiecutter shark, harbour seal|common seal, fur seal, butterflyfish, damselfish, wrasse, triggerfish, surgeonfish|tang, scorpionfish, stonefish, porcupinefish, boxfish, cowfish, pipefish, leafy sea dragon|sea dragon, garden eel, wolf eel, lamprey, hagfish, coelacanth, oarfish, tarpon, bonito, wahoo, mahi mahi|dorado, grouper, snapper, trevally, pompano, grey mullet, ling, lumpsucker, sculpin, blenny, goby, dragonet, weever"]},
+  {n:"Olympic sports",g:"Fun & culture",t:[
+   "swimming, athletics, gymnastics, cycling, rowing, boxing, tennis, football, diving, judo, archery, hockey, basketball, volleyball, golf, rugby|rugby sevens, table tennis, badminton, horse riding|equestrian|dressage|show jumping, triathlon, wrestling, sailing, fencing, weightlifting",
+   "skiing, figure skating|ice skating, snowboarding, marathon, running|sprint|100m, hurdles, long jump, high jump, javelin, shot put, discus, relay, bmx, mountain biking, skateboarding, surfing, climbing|sport climbing, canoeing|kayaking, water polo, synchronised swimming|artistic swimming, trampolining, taekwondo, karate, handball, shooting, modern pentathlon|pentathlon, beach volleyball, decathlon, heptathlon, pole vault, triple jump, hammer|hammer throw, steeplechase, race walking, rhythmic gymnastics, breaking|breakdancing, 3x3 basketball, bobsleigh|bobsled, luge, skeleton",
+   "curling, ice hockey, biathlon, cross-country skiing, ski jumping, speed skating, short track, downhill|alpine skiing, slalom, freestyle skiing, moguls, halfpipe, baseball, softball, cricket, lacrosse, squash, giant slalom, super-g, aerials, ski cross, slopestyle, big air, nordic combined, snowboard cross, parallel giant slalom, flag football, keirin, madison, omnium, team pursuit, team sprint, time trial, road race, individual pursuit, kayak cross|canoe slalom, canoe sprint, open water swimming|marathon swimming, 10km swim, 50m freestyle, butterfly, backstroke, breaststroke, medley, 10m platform, 3m springboard, synchronised diving, team gymnastics, floor, vault",
+   "pommel horse, rings, parallel bars, horizontal bar|high bar, uneven bars, balance beam, 1500m, 5000m, 10000m, 400m hurdles, 4x100 relay, 4x400 relay, mixed relay, 20km walk, 50km walk, 800m, 200m, 400m, greco-roman wrestling, freestyle wrestling, epee, sabre, foil, recurve, trap, skeet, air rifle, air pistol, 10m air rifle, 50m rifle, 25m pistol, laser run, eventing, team dressage, individual jumping, dinghy|laser, 49er, nacra 17, windsurfing|iqfoil, kitefoil|kiteboarding, rugby union, tug of war, polo, croquet, rackets, ice dance, real tennis|jeu de paume, basque pelota, roque, motor boating"]},
+  {n:"Board games",g:"Fun & culture",t:[
+   "monopoly, cluedo, scrabble, chess, draughts|checkers, snakes and ladders, ludo, risk, trivial pursuit, connect 4|connect four, jenga, battleships, operation, guess who, pictionary, uno, mousetrap, twister, backgammon, dominoes, hungry hippos, buckaroo, kerplunk, frustration",
+   "game of life, articulate, catan|settlers of catan, ticket to ride, cards against humanity, yahtzee, boggle, taboo, scattergories, cranium, exploding kittens, codenames, pandemic, carcassonne, dobble, monopoly deal, mastermind, othello|reversi, go, mahjong, chinese checkers, nine men's morris, peg solitaire|solitaire, tiddlywinks, crokinole, carrom, rummikub, qwirkle, bananagrams, upwords, countdown, who wants to be a millionaire, pointless, labyrinth|the amazing labyrinth, stratego, downfall, ghost castle, atmosfear, hero quest, talisman",
+   "balderdash, linkee, 5 second rule, outburst, logo game|the logo board game, escape room game, azul, wingspan, splendor, dixit, 7 wonders, sushi go, love letter, coup, werewolf, the chameleon, herd mentality, obama llama, just one, telestrations, blokus, pass the pigs, shogi, mancala, fox and geese, hnefatafl, terraforming mars, gloomhaven, agricola, scotland yard, diplomacy, kingdomino, xiangqi|chinese chess, gomoku|five in a row, hex, abalone, quarto, quoridor, pentago, 221b baker street, escape from colditz, axis and allies, twilight struggle, twilight imperium, root, scythe, dominion, puerto rico, power grid, brass",
+   "caverna, castles of burgundy, great western trail, concordia, everdell, ark nova, cascadia, spirit island, dune imperium, lost ruins of arnak, viticulture, patchwork, the resistance|avalon, secret hitler, mysterium, wavelength, unlock, exit, sherlock holmes consulting detective, chronicles of crime, space crusade, star wars rebellion, war of the ring, le havre, senet, royal game of ur, pachisi, bagatelle, shove ha'penny, kings of tokyo|king of tokyo, small world, takenoko, tokaido, sagrada, calico, parks, photosynthesis, century spice road, jaipur, hive, santorini, onitama, tsuro, forbidden island, forbidden desert, flash point, ghost stories, mice and mystics, zombicide, betrayal at house on the hill"]},
+  {n:"Musical instruments",g:"Fun & culture",t:[
+   "guitar, piano, drums, violin, trumpet, flute, saxophone, bass, clarinet, cello, harp, trombone, keyboard, ukulele, harmonica, tambourine, recorder, xylophone, accordion, banjo, triangle, bagpipes, bongos, maracas",
+   "cymbals, electric guitar, organ, oboe, tuba, bassoon, french horn, viola, double bass, mandolin, glockenspiel, didgeridoo, kazoo, castanets, cowbell, handbells|bells, tubular bells, chimes, sitar, tabla, steel drums|steel pan, congas, djembe, cajon, timpani|kettle drums, snare drum, bass drum, tom tom|toms, hi-hat, cornet, flugelhorn, euphonium, piccolo, pan pipes|pan flute, tin whistle|penny whistle, ocarina, melodica, synthesiser|synth, drum machine, theremin",
+   "washboard, spoons, jaw harp|jew's harp, kalimba|thumb piano, bodhran, fiddle, lute, lyre, harpsichord, pipe organ, marimba, vibraphone, gong, rainstick, shaker|egg shaker, guiro, claves, balalaika, bouzouki, banjolele, bugle, sousaphone, cor anglais, clavichord, celesta, hammond organ, balafon, gamelan, tam-tam, bell tree, agogo, cabasa, vibraslap, flexatone, slapstick|whip, ratchet, thunder sheet, wind machine, anvil, brake drum, cuíca, berimbau, surdo, pandeiro, timbales, udu, darbuka|doumbek, riq, daf, frame drum",
+   "taiko, dhol, dholak, mridangam, ghatam, sarod, sarangi, santoor, veena, tanpura|tambura, shehnai, bansuri, harmonium, erhu, pipa, guzheng, guqin, dizi, sheng, koto, shamisen, shakuhachi, gayageum, oud, qanun, ney, saz|bağlama, duduk, zurna, domra, bayan, bandura, cimbalom, hurdy-gurdy, nyckelharpa, hardanger fiddle, kantele, uilleann pipes, northumbrian pipes, crumhorn, shawm, sackbut, serpent, cornett, viol|viola da gamba, rebec, psaltery, hammered dulcimer|dulcimer, appalachian dulcimer|mountain dulcimer, autoharp"]},
+  {n:"Types of dance",g:"Fun & culture",t:[
+   "ballet, salsa, tango, waltz, disco, hip hop, jive, breakdance|breakdancing, tap, ballroom, line dancing, street dance, pole dancing, zumba, cha cha|cha cha cha, rumba, samba, foxtrot, flamenco, macarena, conga, irish dancing, morris dancing|morris, belly dancing",
+   "bollywood, twerking, moonwalk, robot, hokey cokey, ymca, cha cha slide, polka, jitterbug, charleston, twist, quickstep, paso doble, lindy hop, can can, bhangra, ceilidh, maypole, square dance, swing, mambo, bachata, merengue, lambada, jig, hornpipe, gangnam style, floss, dab, the worm, running man, electric slide, cupid shuffle, dougie, nae nae, harlem shake, vogue|voguing, krump|krumping, locking, popping",
+   "waacking, contemporary, modern, jazz, lyrical, musical theatre, cheerleading, highland dancing|highland fling, sword dance, reel, strathspey, clog dancing, kathak, bharatanatyam, garba, dandiya, haka, hula, capoeira, kizomba, zouk, dabke, sufi whirling|whirling dervish, cossack dance|hopak, polonaise, mazurka, hora, sirtaki|zorba, tarantella, viennese waltz, minuet, gavotte, pavane, rock and roll|rock 'n' roll, hand jive, time warp, thriller, single ladies, carlton, soulja boy|crank that, stanky leg, shuffle|melbourne shuffle, moshing, headbanging, pogoing, skanking, slow dance, first dance, step dance, acro|acrobatic dance",
+   "odissi, kuchipudi, kathakali, mohiniyattam, manipuri, lavani, bihu, ghoomar, kalbelia, giddha, kandyan, siva, ori tahiti|tamure, forró, frevo, maculele, axé, semba, kuduro, azonto, gwara gwara, pantsula, gumboot dance, indlamu|zulu dance, adumu|maasai jumping dance, sega, khaleegy, saidi, attan, lezginka, kochari, troika, barynya, krakowiak, oberek, csardas|czardas, kalamatianos, tsamiko, hasapiko, pentozali, horon, halay, zeybek, sardana, jota, sevillanas, fandango, bolero, pizzica, saltarello"]},
+  {n:"Card games",g:"Fun & culture",t:[
+   "poker, snap, solitaire, bridge, rummy, blackjack, go fish, old maid, uno, top trumps, pairs|pelmanism|memory, cheat, whist, hearts, crazy eights, pontoon, happy families, dobble, exploding kittens, cards against humanity, texas hold'em, baccarat, spit, slapjack",
+   "donkey, patience, beggar my neighbour, gin rummy, canasta, cribbage, president|arsehole|scum, spades, euchre, sevens, newmarket, chase the ace, knockout whist, brag|three card brag, five card draw, omaha, stud|seven card stud, pinochle, piquet, skat, nap|napoleon, oh hell|oh pshaw, golf, speed, kings|ring of fire|kings cup, switch, mau mau, shithead|palace, durak, 500|five hundred, bezique, klondike, freecell, spider|spider solitaire, pyramid, clock patience, phase 10, skip-bo, mille bornes, sleeping queens",
+   "sushi go, love letter, coup, the mind, hanabi, no thanks, 6 nimmt, bohnanza, citadels, saboteur, munchkin, fluxx, set, taco cat goat cheese pizza, unstable unicorns, throw throw burrito, what do you meme, monopoly deal, uno flip, dos, magic the gathering|magic, pokemon cards|pokémon tcg|pokemon, yu-gi-oh, tarot, 31|thirty-one|scat|blitz, james bond, garbage|trash, egyptian ratscrew, spoons, pig, kemps, nertz|pounce, strip poker, indian poker|blind man's bluff, racing demon, tarock, ombre, quadrille, loo, faro, ecarte, jass, belote, klaverjas, sheepshead, schafkopf, doppelkopf, tarneeb, tressette, scopa",
+   "briscola, sueca, bisca, truco, mus, tute, chinchón, conquian, buraco, hand and foot, bolivia, kalooki|kaluki, tonk, ninety-nine, cuarenta, big two, tien len, dou dizhu, thirteen, pusoy|pusoy dos, tong its, go-stop|hwatu, hanafuda|koi-koi, karuta, daifugo, cassino|casino, kings in the corner, rolling stone, idiot's delight, beleaguered castle, baker's dozen, yukon, scorpion, cruel, calculation, grandfather's clock, la belle lucie, miss milligan, aces up, sixty-six, schnapsen, tyzicha, all fours, pitch, cinch, don, phat, blackout, contract whist, bid whist"]},
+  {n:"Things that are red",g:"Colours & traits",t:[
+   "apple, blood, rose, strawberry, fire engine, tomato, post box|pillar box, ladybird|ladybug, santa, cherry, ruby, stop sign, lipstick, brick, poppy, london bus|bus, heart, fire, red wine|wine, lava, flame, ketchup, red pepper|pepper, chilli|chili",
+   "raspberry, watermelon, coke can|coca cola, ferrari, red light|traffic light, red card, nail varnish|nail polish, cranberry, robin, red rose, santa suit|santa's suit, sunset, blush, rash, beetroot, radish, pomegranate, lobster, red kite, fire extinguisher, boxing glove, rhubarb, red cabbage, red onion, kidney bean, red panda, cardinal, redcurrant, red squirrel, red deer, red fox|fox, red setter|irish setter, red admiral, ruby slippers, red carpet, red nose|clown nose|rudolph's nose, red flag, red cross, red arrows, manchester united|man utd|liverpool|arsenal",
+   "red bull, red telephone box|phone box, royal mail van|post van, red velvet cake|red velvet, red leicester, strawberry laces, jam|strawberry jam, tomato soup, chorizo, salami, pepperoni, steak|red meat, blood orange, red grapes, sriracha, hot sauce|tabasco, red lentils, ginger hair|red hair, sunburn, spots|acne, mars|the red planet, red square, red dragon|welsh dragon, welsh flag, red ribbon, red ensign, chinese flag, swiss flag, canadian flag|maple leaf, japanese flag, red lantern, elmo, lightning mcqueen, mario|mario's hat, iron man, spider-man, deadpool, the flash, red power ranger, clifford, red velvet rope, brake light|tail light, fire alarm, fire hydrant, red button|big red button|emergency stop, record button, red pen, red ink, red dress, red lipstick",
+   "paprika, cockscomb, red grouse, redstart, redwing, redpoll, red-legged partridge, red kangaroo, red wolf, red spider mite, fire ant|red ant, red velvet mite, red coral, red snapper, red mullet, red gurnard, sockeye salmon, dulse|red seaweed, red algae, red clover, red campion, red hot poker, red valerian, scarlet pimpernel, firethorn|pyracantha, holly berries, rowan berries, rosehips, hawthorn berries, cotoneaster berries, yew berries, lingonberries, goji berries, red chard, radicchio, red potato, red bean paste, harissa, kimchi, gochujang, tandoori chicken, red thai curry, cooked prawns|prawns, crab, terracotta, red ochre, red clay, red sandstone, red rock, laterite|red soil"]},
+  {n:"Things that are round",g:"Colours & traits",t:[
+   "ball, wheel, sun, moon, coin, plate, clock, orange, earth, football, bowl|lawn bowl, saucer, pizza, globe, bubble, ring, button, doughnut|donut, hula hoop, bauble, steering wheel, cookie|biscuit, pancake, frisbee",
+   "marble, tennis ball, golf ball, basketball, apple, balloon, eyeball|eye, cd|dvd, record|vinyl, pea, grape, cherry, melon, tomato, onion, pumpkin, cake, tyre|tire, hoop, circle, pie, bowling ball, beach ball, ping pong ball|table tennis ball, cricket ball, netball, volleyball, plant pot, tin lid, roulette wheel, manhole cover, tambourine, puck, porthole, dartboard, lens, snooker ball, cymbal, snowball, cannonball",
+   "pearl, planet, jar lid, bottle top|bottle cap, coaster|beer mat, frying pan, cheese wheel|wheel of cheese, babybel, jaffa cake, oreo, digestive, polo mint|polo, smartie|m&m, malteser, gobstopper, gumball, lollipop, cherry tomato, grapefruit, peach, plum, blueberry, pomegranate, coconut, cabbage, sprout, radish, meatball, falafel, scotch egg, dumpling, pork pie, crumpet, bagel, yorkshire pudding, tortilla|wrap, poppadom, macaron, profiterole, chocolate truffle|truffle, ferrero rocher, lindor, ball bearing, washer, cog|gear, hubcap, roundabout, merry-go-round|carousel, ferris wheel|big wheel, london eye",
+   "round table, rose window, watch face, sundial, compass, dial, knob, badge, medal, token, poker chip, tiddlywink, counter|draughts piece, bingo ball, lottery ball, pinball, bouncy ball, handball, jack, boule|pétanque ball, croquet ball, squash ball, hockey ball, baseball, softball, dodgeball, medicine ball, swiss ball|exercise ball|gym ball, stress ball, space hopper, shot put, wrecking ball, disco ball|mirror ball|glitter ball, crystal ball, snow globe, christmas pudding, pom pom, bobble, bead, sequin, polka dot, full stop, bullseye|target, full moon, jupiter, saturn, pupil, iris, belly button, freckle"]},
+  {n:"Things that are green",g:"Colours & traits",t:[
+   "grass, frog, leaf|leaves, tree, peas, lime, cucumber, broccoli, emerald, kiwi, mint, cabbage, lettuce, crocodile, green apple|apple, pickle|gherkin, avocado, shamrock|clover|four-leaf clover, parrot, lizard, snake, grapes, spinach, courgette",
+   "celery, sprouts|brussels sprouts, green pepper|pepper, green beans|beans, olive, kermit|kermit the frog, hulk, shrek, yoda, grinch, christmas tree, holly, mistletoe, ivy, fern, moss, go light|green light|traffic light, army uniform|camouflage|khaki, tank|army tank, jade, mike wazowski, peter pan, robin hood, green lantern, green goblin, piccolo, luigi, link|zelda, yoshi, green ranger, ninja turtles|teenage mutant ninja turtles, slimer, oscar the grouch, jolly green giant|green giant, android logo, starbucks logo, spotify logo, xbox logo, whatsapp logo, bp logo",
+   "john deere, british racing green, green man, recycling symbol|recycling logo, green bin|garden waste bin, compost bin, village green|green, putting green, bowling green, cricket pitch|pitch|football pitch, snooker table|baize|pool table|billiard table, dollar bill|dollar|greenback, land rover, jeep, combat trousers, scrubs|surgical scrubs, celtic|celtic shirt, hibs|hibernian, ireland shirt|ireland rugby, nigeria shirt, mexico shirt, portugal shirt, pakistan shirt, bangladesh shirt, springboks|south africa rugby, boston celtics, green bay packers, philadelphia eagles, masters jacket|green jacket, snooker green ball|green ball, pistachio, basil, kale, asparagus, turtle, praying mantis, chameleon, lichen, algae, seaweed, pondweed, duckweed, lily pad, bamboo, hedge, bush, shrub, lawn, meadow, field",
+   "forest, jungle, rainforest, toad, tree frog, grasshopper, cricket, caterpillar, aphid|greenfly, stick insect, leaf insect, katydid, shield bug, green woodpecker, greenfinch, budgie|budgerigar, parakeet|ring-necked parakeet, green turtle, iguana, gecko, green mamba, grass snake, green tree python, emerald tree boa, green anaconda|anaconda, green moray, shore crab|green crab, jalapeno, green chilli, padron pepper, green tomato, tomatillo, runner beans, broad beans, mangetout, sugar snap, edamame, petit pois, mushy peas, pea soup, guacamole, pesto, mint sauce, thai green curry|green curry, salsa verde, chimichurri, wasabi, matcha, green tea, spirulina"]},
+  {n:"Things that are hot",g:"Colours & traits",t:[
+   "sun, fire, oven, soup, tea, coffee, lava, volcano, iron, hob|cooker, kettle, chilli, curry, radiator, sauna, desert, toaster, summer, hot water, hairdryer, barbecue|bbq, bath, shower, hot chocolate",
+   "pizza, chips, toast, candle, match, lighter, bonfire, fireworks|sparkler, hot dog, hot sauce, jalapeno, sahara, hot tub|jacuzzi, steam, boiling water, frying pan|pan, grill, engine, exhaust|exhaust pipe, bonnet|car bonnet, tarmac, sand, hot air balloon, magma, blowtorch, bunsen burner, furnace, kiln, forge, campfire, log burner|wood burner|wood burning stove, fireplace|open fire, coal|hot coals, embers, charcoal, hot water bottle, electric blanket, griddle, wok, deep fat fryer|fryer",
+   "chip pan, air fryer, slow cooker, pressure cooker, hot plate, hand warmer, heated seat, underfloor heating, boiler, immersion heater, storage heater, fan heater, oil heater|oil-filled radiator, halogen heater, patio heater, heat lamp|infrared lamp, sunbed, light bulb, spotlight, stage lights, laptop, phone charger|charger, cpu|processor, graphics card, games console, car engine, brake disc|brakes, catalytic converter, turbo, motorbike exhaust, asphalt, road surface, death valley, outback, dubai, mercury, venus, earth's core|core of the earth, geyser, hot spring|thermal spring, onsen, steam room, hammam|turkish bath, bikram yoga|hot yoga, hot stone massage|hot stones, hot towel, hot flush|hot flash, fever|temperature, sunburn, vindaloo",
+   "phaal, madras, jalfrezi, chilli con carne, nando's|peri peri|piri piri, hot wings|buffalo wings, wasabi, english mustard|mustard, horseradish, ginger, black pepper, cayenne, tabasco, sriracha, scotch bonnet, habanero, bird's eye chilli, ghost pepper, carolina reaper, naga, chilli oil, chilli flakes, kimchi, fire noodles|buldak, pot noodle, hot toddy, mulled wine, hot milk, lancashire hotpot|hotpot, fondue, lava cake|fondant|molten chocolate, hot caramel|molten sugar, toffee, custard, gravy, porridge, jacket potato|baked potato, roast potatoes, fries, toastie, candle flame, heater, rocket exhaust|rocket engine, jet engine, afterburner, heat shield|re-entry, meteor|shooting star, lightning, plasma, laser"]},
+  {n:"Things that are sharp",g:"Colours & traits",t:[
+   "knife, needle, scissors, pin, razor, thorn, saw, axe, sword, tooth|teeth, claw, glass|broken glass, nail, fork, cactus, pencil, blade, dagger, arrow, spike, spear, drawing pin|thumbtack, safety pin, staple",
+   "hook|fish hook, razor blade, stanley knife|box cutter|cutter, penknife|pocket knife|swiss army knife, machete, nail clippers, syringe|injection, bee sting|sting|wasp sting, hedgehog, porcupine, thistle, bramble|bramble thorn, holly, icicle, fingernails, talon, beak, fang, tusk, horn, antler, shark tooth|shark teeth|shark, scalpel, hypodermic|hypodermic needle, barbed wire, rose thorn, chisel, tack, shard, stiletto|stiletto heel, grater|cheese grater, bayonet, holly leaf, quill|porcupine quill, sea urchin, blackthorn, hawthorn, gorse, pine needles, toenail",
+   "crab claw, lobster claw, pincer, scorpion sting|scorpion tail, stingray barb, lionfish|lionfish spine, stonefish, pufferfish spines|pufferfish, swordfish|swordfish bill, sawfish, narwhal tusk|narwhal, unicorn horn|unicorn, rhino horn|rhino, bull horns|bull, ice shard, broken bottle, broken plate|smashed plate|crockery, mirror shard|broken mirror, flint, obsidian|obsidian blade, arrowhead, spearhead, hatchet, tomahawk, pickaxe, ice axe, ice pick, crampon, running spikes, football studs|studs, cleats, skate blade|ice skate|skates, ski pole, grappling hook, meat hook|butcher's hook, harpoon, trident, pitchfork, garden fork, rake, shears, secateurs, loppers, pruning saw, hedge trimmer, mower blade|lawnmower blade, scythe, sickle, billhook, kukri",
+   "bowie knife, hunting knife, throwing knife, throwing star|shuriken|ninja star, katana|samurai sword, cutlass, scimitar, rapier, sabre, fencing foil|foil, epee, broadsword, claymore, longsword, dirk, sgian dubh|skean dhu, kris, lance, pike, halberd, javelin, crossbow bolt|bolt, dart, blowdart, screw, drill bit, hacksaw, circular saw, bandsaw, jigsaw, chainsaw, angle grinder, gouge, awl, bradawl, sewing needle, knitting needle, darning needle, hat pin, brooch pin|brooch, badge pin, pushpin|map pin, paper cut|paper edge, tin lid|can lid|tin can lid, ring pull, corkscrew, skewer|kebab skewer, cocktail stick, toothpick, satay stick"]}
   ];
-  
-  /* ---------- Expansion: groups, new categories, bigger answer lists ---------- */
-  var GROUPS=['Rhymes','Starts with','Home & life','Food & drink','Nature & animals','Places & travel','Fun & culture','Colours & traits'];
-  
-  BANK.push(
-  /* Rhymes */
-  {n:'Words that rhyme with “cat”',g:'Rhymes',ban:'cat',t:[
-   "hat, bat, mat, sat, rat, fat, flat, that, chat, pat",
-   "splat, brat, gnat, combat, tat, vat, scat, spat, slat, drat, format",
-   "doormat, acrobat, habitat, wombat, diplomat, democrat, aristocrat, thermostat, bobcat, wildcat, cravat, laundromat",
-   "muskrat, bureaucrat, technocrat, autocrat, ziggurat, fiat, copycat, tit for tat"]},
-  {n:'Words that rhyme with “tree”',g:'Rhymes',ban:'tree',t:[
-   "me, see, free, three, key, sea, bee, tea, knee, we",
-   "she, he, flee, agree, degree, ski, pea, glee, plea, fee, be, tee, spree, flea",
-   "guarantee, referee, jubilee, trainee, refugee, absentee, marquee, settee, committee, employee, debris, chimpanzee",
-   "pedigree, tepee|teepee, banshee, apogee, bourgeoisie, jamboree, nominee, devotee, licensee, franchisee, amputee, escapee, detainee"]},
-  {n:'Words that rhyme with “bear”',g:'Rhymes',ban:'bear',t:[
-   "chair, hair, air, pair, care, share, fair, there, where, stare",
-   "wear, square, dare, flare, spare, glare, scare, rare, mare, snare, bare, pear, swear, their",
-   "despair, compare, beware, aware, prepare, nightmare, unfair, millionaire, billionaire, questionnaire, repair, declare, affair, welfare, warfare, impair",
-   "solitaire, éclair|eclair, doctrinaire, concessionaire, laissez-faire, thoroughfare, heir, ere, debonair, mohair, delaware"]},
-  {n:'Words that rhyme with “moon”',g:'Rhymes',ban:'moon',t:[
-   "soon, spoon, noon, june, tune, balloon, cartoon, raccoon",
-   "lagoon, typhoon, monsoon, harpoon, saloon, platoon, baboon, cocoon, maroon, dune, prune, croon, swoon, afternoon",
-   "honeymoon, buffoon, bassoon, pontoon, macaroon, doubloon, festoon, tycoon, lampoon, spittoon",
-   "pantaloon, picaroon, rigadoon, dragoon, bridoon, gadroon"]},
-  {n:'Words that rhyme with “snow”',g:'Rhymes',ban:'snow',t:[
-   "go, no, know, show, flow, slow, grow, low, glow, blow",
-   "throw, toe, row, crow, dough, though, foe, hello, doe, woe, roe, mow, tow, so, sew, oh, ago",
-   "mistletoe, window, shadow, pillow, elbow, borrow, widow, meadow, rainbow, fellow, tomorrow, potato, tomato, buffalo, hero, zero, piano, volcano, radio",
-   "tableau, plateau, bureau, chateau, bordeaux, cameo, portfolio, stiletto, torpedo, innuendo, desperado, crescendo, avocado, apropos, dado, fiasco"]},
-  {n:'Words that rhyme with “bell”',g:'Rhymes',ban:'bell',t:[
-   "sell, tell, well, shell, fell, smell, spell, yell, hell, cell",
-   "swell, dwell, knell, quell, gel, jell, hotel, motel",
-   "farewell, compel, excel, rebel, expel, propel, repel, dispel, retell, bluebell, doorbell, cowbell, dumbbell, foretell",
-   "carousel, citadel, caramel, infidel, pastel, bagatelle, mademoiselle, gazelle, chanterelle, villanelle, personnel, parallel"]},
-  
-  /* Starts with */
-  {n:'Words that start with “book”',g:'Starts with',pre:'book',t:[
-   "bookshop, bookcase, bookmark, bookshelf, bookworm, booklet, bookmaker, bookkeeper",
-   "bookstore, bookend, book club, book fair, booking, bookplate, bookstall, book token, bookbinding, book review, book launch, bookie",
-   "bookbinder, bookseller, booking office, bookrest, bookish, booker prize, book bag, bookmobile, book of kells, book of common prayer",
-   "bookland, bookhand, book lung, booklouse, book muslin, book value, bookwright, book of hours, book of the dead"]},
-  {n:'Words that start with “hand”',g:'Starts with',pre:'hand',t:[
-   "handbag, handshake, handle, handwriting, handsome, handy, handcuffs, handstand",
-   "handbrake, handball, handmade, hand cream, hand sanitiser, handout, handrail, handful, hand towel, hand luggage, handkerchief, handyman, hand grenade, handbook, hand dryer, hand wash",
-   "handlebar, handsaw, handspring, hand puppet, handcart, handloom, handmaid, handgun, handset, hand mirror, hand pump, handover, handicap",
-   "handfasting, handsel, handspike, handbill, handcraft, handhold, handline, handpicked, handrest, handsewn, handwork, handwoven"]},
-  {n:'Words that start with “back”',g:'Starts with',pre:'back',t:[
-   "backpack, backbone, backyard, backstage, backfire, background, backache, backhand",
-   "backup, backstroke, backslash, backdrop, backgammon, backward, backside, backlog, backpacker, back door, backspace, back seat, backstab, back garden, backbench",
-   "backbencher, backcomb, backfield, backflip, backlash, backlit, backrest, backroom, backsliding, backtrack, backwater, backwoods, backhander, back burner, backing track, backscratcher",
-   "backformation, backsaw, backstay, backstitch, backstreet, backswing, backwash, backbite, backblocks, backcloth, backhoe, backlist, backmost, backstop, backbreaking"]},
-  {n:'Words that start with “sea”',g:'Starts with',pre:'sea',t:[
-   "seaside, seashell, seagull, seaweed, seahorse, sea lion, seafood, seal, season",
-   "seat, search, seabed, seabird, seaport, seaplane, sea level, seashore, seasick, seamstress, seam, seance, seaman, sea salt, sea urchin, seafarer",
-   "seagoing, seaworthy, seaboard, sea breeze, sea bass, sea bream, sea cucumber, sea eagle, sea kale, seafaring, sea fog, seamount, seaquake, sea mist",
-   "sea buckthorn, sea holly, sea lavender, sea pink, seabeach, sea anemone, sea otter, sea snake, sea slug, sea squirt, sea spider, sea star, sea trout"]},
-  {n:'Words that start with “rain”',g:'Starts with',pre:'rain',t:[
-   "rainbow, raincoat, raindrop, rainforest, rainfall, rainstorm, rain cloud, rainy day",
-   "rainwater, rain gauge, rain dance, rainmaker, rain check, rain jacket, rain boots, rainproof, rain hat, rainswept, rainwear, rain shadow",
-   "rain cover, rainband, rain barrel, rain butt, rain shower, rainspout, rain sensor, rainbow trout, rainbow lorikeet, rain tree, rainmaking",
-   "rain stick, rain crow, rain frog, rain lily, rain fly, raindrop cake, rain garden, rainscreen"]},
-  {n:'Words that start with “snow”',g:'Starts with',pre:'snow',t:[
-   "snowman, snowball, snowflake, snowboard, snowdrop, snowfall, snowstorm, snow day",
-   "snowplough|snowplow, snowmobile, snow globe, snowshoe, snow angel, snow leopard, snowdrift, snow boots, snowsuit, snow cone, snowdonia, snowdon",
-   "snowfield, snowbird, snowcap, snowline, snowpack, snowblower, snow goose, snowy owl, snow bunting, snow pea, snowberry, snowbound",
-   "snow crab, snowmelt, snowscape, snow cat, snowbell, snow gum, snow monkey, snowslide, snow tyre|snow tire, snowshill"]},
-  {n:'Words that start with “head”',g:'Starts with',pre:'head',t:[
-   "headache, headband, headlight, headphones, headline, headteacher, headquarters, headboard",
-   "headmaster, headmistress, headrest, headscarf, headstand, headway, headlamp, headstone, head start, headcount, headhunter, header, heading, headland",
-   "headgear, headlock, headdress, headwind, headwaters, headspace, headsman, head girl, head boy, head chef, head waiter, head office, head lice, headbutt",
-   "headfirst, headlong, headmost, headpiece, headsail, headshot, headstall, headstrong, head on, headspring"]},
-  {n:'Words that start with “foot”',g:'Starts with',pre:'foot',t:[
-   "football, footprint, footpath, footstep, footnote, footwear, foothold, foot pump",
-   "footbridge, footstool, footlights, foot brake, footman, footage, footballer, foothill, footwork, foot massage, foot spa, foot locker",
-   "footfall, footing, footloose, footplate, footrest, footsore, footslog, footsie, foot soldier, foot fault, foot and mouth, football pitch",
-   "footpad, footboard, footcloth, footle, footy, foot rot, footmark, footgear"]},
-  {n:'Words that start with “light”',g:'Starts with',pre:'light',t:[
-   "lighthouse, lightbulb, lightning, lighter, lightweight, light switch, light year, light show",
-   "lightship, light pollution, light aircraft, light railway, light fitting, light sleeper, light ale, light opera, light entertainment, light infantry, light touch, light rain",
-   "lightbox, lightheaded, lightfooted, light meter, light pen, lightproof, light fingered, light brigade, light industry, light bulb moment",
-   "lightwood, lightfast, lightening, lightless, lightsome, lightwave"]},
-  {n:'Words that start with “over”',g:'Starts with',pre:'over',t:[
-   "overcoat, overtake, overtime, overdue, overflow, overhead, overall, overboard",
-   "overdraft, overdose, overheat, overnight, overlook, overpass, overseas, oversleep, overweight, overcast, overcome, overwork, overreact, overeat",
-   "overbite, overcrowded, overgrown, overhang, overlap, overload, overpower, overrule, overshadow, oversight, overstate, overthrow, overture, overwhelm, overlord",
-   "overarm, overbearing, overcharge, overdub, overfish, overmantel, overreach, overripe, oversubscribed, overstay, overtone, overwinter, overshoe"]},
-  
-  /* Home & life */
-  {n:'Things in a bedroom',g:'Home & life',t:[
-   "bed, pillow, duvet, wardrobe, lamp, mirror, alarm clock, curtains",
-   "bedside table|bedside cabinet, chest of drawers|drawers, blanket, sheets|sheet, mattress, slippers, dressing gown, hangers|hanger, rug, laundry basket, teddy bear|teddy",
-   "headboard, bed frame, fitted sheet, hot water bottle, dressing table, clothes horse, ottoman, night light|nightlight, bedspread, throw, eye mask, blackout blind, pillowcase|pillow case, duvet cover",
-   "valance, bolster, tallboy, divan, counterpane, chaise longue, daybed, hat stand, bedwarmer"]},
-  {n:'Things in a garden',g:'Home & life',t:[
-   "grass, flowers|flower, tree, shed, fence, lawn, bench, pond",
-   "patio, hedge, bird bath, barbecue|bbq, washing line, gnome, greenhouse, swing, trampoline, hose, bird feeder, flower bed",
-   "compost heap|compost bin, water butt, trellis, decking, rockery, sundial, wheelbarrow, pergola, arbour, patio heater, vegetable patch|veg patch, cold frame",
-   "topiary, cloche, obelisk, espalier, dovecote, folly, bird table, rose arch"]},
-  {n:'Things at the gym',g:'Home & life',t:[
-   "treadmill, weights|dumbbells|dumbbell, mat|yoga mat, mirror, towel, water bottle, bench, locker",
-   "exercise bike, rowing machine, kettlebell, barbell, cross trainer|elliptical, punch bag, skipping rope, resistance band, shower, trainers, protein shake",
-   "squat rack, medicine ball, foam roller, pull up bar, leg press, cable machine, stepper|stair climber, sauna, steam room, swiss ball|gym ball, weight belt, chalk",
-   "assault bike, battle ropes, plyo box, sled, ab roller, smith machine, hack squat, lat pulldown, pec deck, tyre flip"]},
-  {n:'Things at a birthday party',g:'Home & life',t:[
-   "cake, balloons|balloon, presents|present, candles|candle, cards|card, music, games, party hats|party hat",
-   "party bags|party bag, singing, streamers, sweets, pass the parcel, jelly, sausage rolls, banner, crisps, dancing, musical chairs, invitations|invitation",
-   "pin the tail on the donkey, piñata|pinata, bouncy castle, magician, face painting, party popper, party blower|blowers, sandwiches, birthday badge, jelly and ice cream, mini rolls, tablecloth",
-   "sparkler, photo booth, cake stand, loot bag, paper chains, bunting, clown, treasure hunt, cake topper, cake knife, candle snuffer, money box"]},
-  {n:'Things at Christmas',g:'Home & life',t:[
-   "tree, presents|present, santa, turkey, snow, lights, cards|card, stocking",
-   "reindeer, mince pies|mince pie, tinsel, carols|carol, crackers|cracker, baubles|bauble, wreath, chimney, advent calendar, sprouts|brussels sprouts, holly, elf, mistletoe, angel",
-   "yule log, christmas pudding, snowman, sleigh, nativity, star, paper hat, king's speech|queen's speech, gingerbread, eggnog, mulled wine, christmas jumper, tangerine|satsuma, roast potatoes, pigs in blankets",
-   "frankincense, myrrh, wassail, advent wreath, stollen, figgy pudding, yuletide, nutcracker, poinsettia, boxing day, twelfth night, midnight mass, tree skirt, christingle"]},
-  {n:'Parts of the body',g:'Home & life',t:[
-   "head, arm, leg, hand, foot, eye, nose, mouth",
-   "ear, finger, toe, knee, elbow, shoulder, back, neck, tongue, tooth|teeth, hair, stomach, chest, hip, ankle, wrist, thumb",
-   "eyebrow, eyelash, chin, forehead, cheek, lip, heel, calf, thigh, shin, palm, knuckle, nostril, armpit, spine, rib, skull",
-   "sternum, clavicle|collarbone, tibia, fibula, femur, humerus, patella|kneecap, scapula|shoulder blade, coccyx|tailbone, philtrum, uvula, nape, instep, achilles tendon, septum, temple, earlobe, bicep|biceps"]},
-  {n:'Jobs',g:'Home & life',t:[
-   "doctor, teacher, nurse, police officer|policeman|policewoman|police, firefighter|fireman, builder, chef, farmer",
-   "dentist, vet, plumber, electrician, pilot, driver, postman|postie|postal worker, lawyer, waiter, hairdresser, mechanic, scientist, engineer, soldier, cleaner, carpenter, baker, butcher, actor, artist, writer",
-   "accountant, architect, barista, bricklayer, butler, cashier, coastguard, florist, geologist, gardener, journalist, librarian, lifeguard, optician, paramedic, pharmacist, physiotherapist, plasterer, roofer, surveyor, tailor, taxi driver, translator",
-   "cartographer, chimney sweep, cooper, farrier, fletcher, glazier, lexicographer, locksmith, milliner, thatcher, wheelwright, apothecary, blacksmith, cobbler, taxidermist, stenographer, sommelier, pathologist"]},
-  {n:'Items of clothing',g:'Home & life',t:[
-   "shirt, trousers, jeans, dress, skirt, jumper, socks, coat",
-   "t-shirt|tshirt, shorts, hoodie, jacket, tie, scarf, gloves, pyjamas, underwear, leggings, tracksuit, cardigan, blouse, suit, swimsuit, raincoat, hat",
-   "waistcoat, dungarees, kilt, dressing gown, leotard, tights, cravat, blazer, poncho, anorak, parka, kimono, sari, boiler suit|overalls, bodysuit, tuxedo, tank top, polo shirt, gilet",
-   "culottes, jodhpurs, cummerbund, pinafore, tabard, smock, cape, shawl, kaftan, sarong, cagoule, bolero, jerkin, doublet, pantaloons, plus fours|plus-fours, tunic, stole, salopettes"]},
-  {n:'Types of shoe',g:'Home & life',t:[
-   "trainers|sneakers, boots, sandals, slippers, heels|high heels, flip flops, wellies|wellingtons, football boots",
-   "loafers, brogues, plimsolls, ballet pumps|pumps, flats, clogs, crocs, sliders, uggs|ugg boots, hiking boots|walking boots, school shoes, ankle boots, platforms, wedges, espadrilles",
-   "stilettos, moccasins, oxfords, derbies, mules, kitten heels, snow boots, cowboy boots, roller skates, ice skates, ski boots, cleats, spikes, jelly shoes, deck shoes|boat shoes",
-   "galoshes, brothel creepers|creepers, winklepickers, pattens, sabots, mary janes, slingbacks, chelsea boots, chukka boots, desert boots, waders, geta, huaraches, pointe shoes"]},
-  {n:'Types of hat',g:'Home & life',t:[
-   "cap, beanie, top hat, cowboy hat, bowler hat|bowler, helmet, sun hat|sunhat, bobble hat",
-   "baseball cap, trilby, flat cap, fedora, bucket hat, beret, party hat, wizard hat, crown, chef's hat, tiara, turban, hard hat, panama",
-   "stetson, fez, sombrero, deerstalker, balaclava, boater, pillbox hat|pillbox, fascinator, mortarboard, busby, bearskin, mitre, homburg, pith helmet, tam o'shanter|tam, ushanka",
-   "kippah|yarmulke, tricorn, bicorne, kepi, glengarry, snood, cloche, tarboosh, coolie hat, akubra, balmoral, shako, sou'wester, zucchetto, pork pie hat"]},
-  {n:'Things in a toy box',g:'Fun & culture',t:[
-   "teddy, doll, lego, car, ball, puzzle, kite, trains",
-   "building blocks|blocks, play doh|playdough, action figure, board game, skipping rope, yo yo, scooter, bike, jigsaw, rocking horse, spinning top|top, slinky, crayons, rubik's cube|rubiks cube",
-   "tamagotchi, furby, etch a sketch, stickle bricks, meccano, hot wheels, barbie, sylvanian families, fidget spinner, marbles, jacks, kaleidoscope, pogo stick, space hopper, hula hoop",
-   "cup and ball|ball and cup, diabolo, jack in the box, tiddlywinks, spirograph, view master, cat's cradle, pop up book, hobby horse, wooden train, pea shooter, clackers"]},
-  {n:'School subjects',g:'Home & life',t:[
-   "maths|math, english, science, history, geography, art, pe|physical education, music",
-   "french, spanish, drama, biology, chemistry, physics, ict|computing, re|religious education, dt|design and technology, german, latin, pshe, citizenship, food technology|home economics",
-   "economics, psychology, sociology, statistics, politics, philosophy, business studies, media studies, classics, further maths, textiles, woodwork, metalwork, photography, dance",
-   "ancient greek|greek, astronomy, geology, anthropology, archaeology, law, accounting, ethics, rhetoric, calligraphy, shorthand, needlework, scripture"]},
-  {n:'Things in an office',g:'Places & travel',t:[
-   "desk, computer, chair, printer, phone, pen, paper, stapler",
-   "keyboard, mouse, monitor|screen, filing cabinet, notebook, calculator, whiteboard, hole punch, paper clips|paper clip, post it notes|post its, folder, water cooler, photocopier|copier",
-   "lanyard, shredder, swivel chair, desk tidy, highlighter, label maker, envelope, in tray, laminator, projector, conference phone, meeting room",
-   "franking machine, rolodex, blotter, date stamp|stamp, bulldog clip, treasury tag, lever arch file, dictaphone, fax machine, paper trimmer, ink pad, letter opener"]},
-  {n:'Things in a supermarket',g:'Places & travel',t:[
-   "trolley, basket, checkout|till, fruit, vegetables, bread, milk, shelves",
-   "self checkout, carrier bag|bag for life, bags, deli counter, bakery, freezer aisle, meal deal, security guard, receipt, loyalty card|clubcard|nectar card, reduced section, tannoy",
-   "yellow sticker, scanner, barcode, cashier, trolley token|pound coin, bag packer, price gun, shelf stacker, queue, pick and mix, hot food counter, flower stand",
-   "weighing scales, pallet, cage trolley, end cap, loss leader, chiller cabinet, dump bin, wet floor sign, shelf wobbler, price tag"]},
-  {n:'Things at a restaurant',g:'Places & travel',t:[
-   "menu, table, chair, waiter, food, plate, fork, knife",
-   "waitress, bill, tip, napkin, glass, starter, main course|main, dessert, chef, kitchen, wine list, candle, reservation|booking",
-   "sommelier, maitre d, tablecloth, bread basket, condiments, cutlery, specials board, high chair, cloakroom, tasting menu, bar, reservation book",
-   "amuse bouche, pass, cover charge, digestif, tableside service, brigade, commis chef, silver service, dumb waiter, finger bowl, sorbet, petit fours"]},
-  {n:'Things at an airport',g:'Places & travel',t:[
-   "plane|aeroplane, passport, suitcase, check in, security, gate, pilot, luggage",
-   "boarding pass, departures, arrivals, duty free, baggage reclaim, runway, customs, terminal, trolley, cabin crew, lounge, control tower",
-   "x-ray machine|scanner, conveyor belt|carousel, jet bridge, hangar, taxiway, windsock, passport control, hold luggage, fast track, immigration, baggage handler, priority boarding, tarmac",
-   "apron, de-icing, pushback tug, fuel bowser, air traffic controller, transit, slot, cargo hold, emergency exit, landing gear"]},
-  {n:'Things at a train station',g:'Places & travel',t:[
-   "train, platform, ticket, track, timetable, bench, waiting room, guard",
-   "ticket barrier|barrier|ticket gate, ticket machine, departure board, tannoy|announcement, café|cafe, newsagent, footbridge, signal, conductor, luggage trolley, toilets, clock",
-   "station master, level crossing, buffers|buffer stop, lost property, left luggage, concourse, subway|underpass, signal box, yellow line, porter, information desk, platform number",
-   "points, bay platform, catenary, overhead lines, turnstile, ticket inspector, mind the gap, rolling stock, goods shed, water tower, semaphore, footplate"]},
-  {n:'Things in a hospital',g:'Places & travel',t:[
-   "doctor, nurse, bed, ambulance, patient, medicine, ward, stethoscope",
-   "surgeon, receptionist, waiting room, wheelchair, operating theatre, x-ray, bandage, crutches, thermometer, drip, a&e|emergency room, pharmacy",
-   "porter, stretcher, defibrillator, scalpel, ecg|heart monitor, cannula, syringe, theatre gown|gown, scrubs, mri scanner|mri, trolley, sluice",
-   "radiographer, anaesthetist, bedpan, ventilator, autoclave, catheter, pulse oximeter, incubator, gurney, sphygmomanometer, triage"]},
-  {n:'Things at a funfair',g:'Places & travel',t:[
-   "rollercoaster|roller coaster, ferris wheel, candy floss, carousel, helter skelter, dodgems|bumper cars, hook a duck, big wheel",
-   "ghost train, waltzer, teacups, coconut shy, chair o plane|chairoplane, toffee apple, hot dogs|hot dog, prizes, tickets, tombola, swing boats, popcorn, goldfish",
-   "log flume, haunted house, hall of mirrors, test your strength, penny falls, penny arcade, barker, generator, ring toss|hoopla, shooting gallery, speed ramp",
-   "gallopers, steam organ, cakewalk, wall of death, fun house, bingo caller, crazy mouse, speedway"]},
-  {n:'Things on a boat',g:'Places & travel',t:[
-   "sail, anchor, mast, deck, captain, life jacket, oar, rope",
-   "engine, flag, cabin, hull, bow, stern, compass, wheel|helm, crew, lifebelt, life raft, funnel, porthole, galley",
-   "rudder, keel, rigging, bilge, tiller, port, starboard, gangway, bunk, buoy, boom, winch, mooring line|painter, fender",
-   "bowsprit, capstan, binnacle, halyard, jib, spinnaker, crow's nest|crows nest, windlass, transom, forecastle, gunwale, sextant, bulkhead, davit"]},
-  {n:'Things on a farm',g:'Nature & animals',t:[
-   "tractor, cow, sheep, pig, horse, chicken, barn, field",
-   "farmer, hay, goat, duck, fence, gate, farmhouse, combine harvester, scarecrow, trough, eggs, sheepdog",
-   "silo, hay bale|bale, pigsty, hen house|chicken coop, milking parlour, plough, stable, paddock, sprayer, trailer, dry stone wall, muck spreader",
-   "threshing machine, baler, dairy, byre, cattle grid, harrow, seed drill, haystack, hayloft, windpump, shearing shed, slurry pit"]},
-  {n:'Things in a forest',g:'Nature & animals',t:[
-   "trees|tree, leaves|leaf, squirrel, deer, mushrooms|mushroom, birds|bird, path, owl",
-   "fox, badger, moss, logs|log, acorn, pine cone, stream, hedgehog, bluebells|bluebell, ferns|fern, rabbit, branch, bear, wolf",
-   "toadstool, bracken, woodpecker, undergrowth, canopy, clearing, lichen, rotting log, tree stump|stump, fallen leaves, pine needles, bats",
-   "forest floor, mycelium, foxglove, wild garlic, dormouse, nightjar, tawny owl, lynx, stag beetle, glade, coppice, understorey"]},
-  {n:'Things in space',g:'Nature & animals',t:[
-   "sun, moon, stars|star, planets|planet, rocket, astronaut, earth, comet",
-   "mars, jupiter, saturn, asteroid, galaxy, satellite, space station, meteor, black hole, venus, alien, telescope, milky way, orbit",
-   "nebula, supernova, mercury, neptune, uranus, pluto, space shuttle, constellation, solar system, rover, probe, eclipse, quasar, big bang",
-   "pulsar, exoplanet, dark matter, event horizon, magnetar, kuiper belt, oort cloud, red giant, white dwarf, neutron star, accretion disc, heliosphere, titan, europa"]},
-  
-  /* Food & drink */
-  {n:'Vegetables',g:'Food & drink',t:[
-   "carrot, potato, onion, peas|pea, broccoli, tomato, cucumber, cabbage",
-   "sweetcorn|corn, cauliflower, lettuce, spinach, leek, mushroom, pepper, courgette, celery, parsnip, sprouts|brussels sprouts, beans, turnip, swede",
-   "aubergine|eggplant, beetroot, radish, asparagus, kale, artichoke, squash, pumpkin, fennel, sweet potato, runner beans|runner bean, shallot, garlic, spring onion, rocket, watercress",
-   "kohlrabi, salsify, celeriac, okra, pak choi|bok choy, romanesco, samphire, cardoon, jerusalem artichoke, mangetout, chicory, endive, mooli, tatsoi, chard, rhubarb"]},
-  {n:'Cheeses',g:'Food & drink',t:[
-   "cheddar, brie, mozzarella, parmesan, feta, stilton, edam, gouda",
-   "camembert, halloumi, red leicester, wensleydale, mascarpone, ricotta, cream cheese, swiss|emmental, cottage cheese, blue cheese, goat's cheese|goats cheese, gruyère|gruyere, double gloucester, cheshire",
-   "manchego, gorgonzola, roquefort, pecorino, havarti, provolone, jarlsberg, lancashire, monterey jack, paneer, cheese strings|string cheese, boursin, port salut, taleggio, cornish yarg",
-   "epoisses, comté|comte, reblochon, appenzeller, raclette, burrata, limburger, caerphilly, stinking bishop, vacherin, munster, fontina, leerdammer, saint agur"]},
-  {n:'Biscuits',g:'Food & drink',t:[
-   "digestive, rich tea, bourbon, custard cream, hobnob, jammie dodger, shortbread, ginger nut",
-   "oreo, cookie, malted milk, jaffa cake, garibaldi, fig roll, nice, party rings, wafer, viennese whirl, flapjack",
-   "biscotti, amaretti, langue de chat, lotus biscoff|biscoff, florentine, gingerbread man|gingerbread, melting moment, bath oliver, ginger snap, cream cracker, water biscuit, oatcake",
-   "lincoln, bandit, taxi, trio, blue riband, tea finger, shrewsbury, brandy snap, tuile, speculoos, stroopwafel"]},
-  {n:'Sandwich fillings',g:'Food & drink',t:[
-   "cheese, ham, tuna, egg, chicken, bacon, tomato, cucumber",
-   "blt, egg mayo|egg mayonnaise, coronation chicken, prawn, cheese and pickle, peanut butter, jam, ham and cheese, turkey, salad, lettuce, sausage, beef, tuna mayo",
-   "pastrami, brie and cranberry, falafel, hummus, avocado, smoked salmon, bacon and egg, cheese and onion, crisps, fish fingers|fish finger, chip butty|chips, corned beef, salad cream, marmite",
-   "banana, nutella, peanut butter and jelly, cheese and marmite, spam, liver pâté|pate, potted shrimp, jam and cream, ploughman's|ploughmans, bacon and banana, sardines, ham and mustard, egg and cress"]},
-  {n:'Drinks',g:'Food & drink',t:[
-   "water, tea, coffee, juice, milk, coke, lemonade, orange juice",
-   "hot chocolate, squash, fanta, sprite, pepsi, smoothie, milkshake, cordial, cola, ginger beer, apple juice, ribena, iced tea, tonic",
-   "irn bru, dr pepper, lucozade, red bull, kombucha, bitter lemon, ginger ale, root beer, cream soda, tango, vimto, mocha, latte, cappuccino, americano",
-   "horlicks, ovaltine, bovril, barley water, lassi, ayran, kefir, yerba mate, chai, sarsaparilla, dandelion and burdock, horchata, bubble tea|boba"]},
-  {n:'Sweets',g:'Food & drink',t:[
-   "chocolate, haribo, lollipop, jelly babies|jelly baby, wine gums|wine gum, mints|mint, fudge, toffee",
-   "gobstopper, sherbet, liquorice|licorice, fruit pastilles|pastilles, polo, skittles, starburst, maltesers, smarties, bonbons, humbugs|humbug, flying saucers",
-   "sherbet dip dab|dip dab, refreshers, black jacks, fruit salad, rhubarb and custard, pear drops, cola bottles|cola bottle, jelly beans|jelly bean, candy canes|candy cane, marshmallow, turkish delight, nougat, rock, aniseed balls",
-   "sugar mice, barley sugar, edinburgh rock, bullseyes, everton mints, pontefract cakes, kendal mint cake, parma violets, fizz wiz, love hearts, drumstick, fruit gums"]},
-  {n:'Herbs and spices',g:'Food & drink',t:[
-   "salt, pepper, basil, parsley, mint, thyme, rosemary, cinnamon",
-   "oregano, paprika, chilli powder|chilli, cumin, coriander, turmeric, ginger, nutmeg, garlic, sage, dill, cloves|clove, bay leaf|bay leaves, mixed herbs",
-   "cardamom, saffron, fennel seeds|fennel, mustard seeds|mustard, star anise, allspice, chives, tarragon, cayenne, curry powder, garam masala, mace, vanilla, lemongrass, marjoram",
-   "sumac, asafoetida, fenugreek, za'atar|zaatar, caraway, juniper, lovage, sorrel, chervil, galangal, nigella, ras el hanout, annatto, epazote, lavender"]},
-  {n:'Chocolate bars',g:'Food & drink',t:[
-   "mars, snickers, twix, kitkat, dairy milk, bounty, galaxy, milky way",
-   "aero, wispa, crunchie, double decker, flake, twirl, toblerone, ripple, picnic, lion bar|lion, curly wurly, freddo, boost, star bar",
-   "yorkie, drifter, topic, fudge, fry's chocolate cream|fry's, caramac, milkybar|milky bar, tracker, penguin, kinder bueno|bueno, lindor, ferrero rocher, terry's chocolate orange|chocolate orange, after eight",
-   "texan, spira, cadbury caramel|caramel, banjo, wagon wheel, secret, fuse, marathon, bournville, daim, chomp, time out"]},
-  {n:'Things you put on toast',g:'Food & drink',t:[
-   "butter, jam, marmite, peanut butter, beans, cheese, eggs, honey",
-   "marmalade, nutella, avocado, scrambled egg, bacon, tomato, banana, cream cheese",
-   "lemon curd, poached egg, mushrooms, smoked salmon, hummus, ricotta, golden syrup, vegemite, cinnamon sugar, sardines, anchovy paste, marmite and cheese",
-   "bovril, potted meat, cheese and pickle, dripping, fish paste, gentleman's relish, tahini, lemon and sugar, banana and honey, bloater paste, welsh rarebit"]},
-  {n:'Types of bread',g:'Food & drink',t:[
-   "white, brown, wholemeal, sourdough, baguette, naan, pitta|pita, bagel",
-   "ciabatta, focaccia, rye, tortilla, roll|bread roll, bap, bun, cob, brioche, crumpet, muffin, soda bread, granary, flatbread, chapati",
-   "bloomer, cottage loaf, farmhouse, barm cake|barm, stottie, bannock, matzo|matzah, pumpernickel, challah, panini, lavash, roti, paratha, malt loaf, tiger loaf",
-   "injera, arepa, bialy, boule, fougasse, grissini, kulcha, pain de campagne, manchet, bara brith, cornbread, teacake, farl, batch, lardy cake"]},
-  {n:'Takeaway foods',g:'Food & drink',t:[
-   "pizza, burger, chips, fish and chips, kebab, chinese, curry, fried chicken",
-   "sushi, nuggets, wrap, hot dog, noodles, tikka masala, naan, spring rolls|spring roll, sweet and sour, pad thai, doner, falafel",
-   "poppadom, bhaji, chow mein, dim sum, katsu curry, ramen, burrito, taco, fajita, nachos, shawarma, jerk chicken, gyros, souvlaki, pakora",
-   "bao, pho, banh mi, bibimbap, laksa, gyoza, tonkatsu, empanada, arancini, poke bowl, khachapuri, kofta"]},
-  
-  /* Nature & animals */
-  {n:'Birds',g:'Nature & animals',t:[
-   "robin, blackbird, pigeon, sparrow, crow, seagull|gull, duck, eagle",
-   "owl, swan, goose, magpie, blue tit|bluetit, wren, starling, pheasant, parrot, penguin, ostrich, flamingo, hawk, peacock, chicken, kingfisher",
-   "woodpecker, heron, kestrel, buzzard, jay, finch|goldfinch|chaffinch, thrush, nightingale, skylark, cuckoo, swallow, puffin, cormorant, albatross, pelican, toucan",
-   "wagtail, dunnock, treecreeper, nuthatch, lapwing|peewit, curlew, oystercatcher, fieldfare, redwing, goldcrest, hoopoe, bittern, osprey, gannet, shag, spoonbill, shearwater, capercaillie, corncrake"]},
-  {n:'Insects and creepy crawlies',g:'Nature & animals',t:[
-   "ant, bee, fly, butterfly, ladybird|ladybug, spider, wasp, beetle",
-   "caterpillar, moth, mosquito, grasshopper, cricket, worm, snail, slug, dragonfly, centipede, woodlouse, flea, cockroach, earwig, praying mantis|mantis",
-   "bumblebee, hornet, firefly, stick insect, cicada, aphid, greenfly, daddy long legs|crane fly, lacewing, termite, tick, louse|lice, millipede, scorpion, tarantula",
-   "mayfly, water boatman, pond skater, silverfish, weevil, stag beetle, click beetle, leafhopper, froghopper, thrips, damselfly, glow worm|glowworm, dung beetle, bluebottle, horsefly"]},
-  {n:'Sea creatures',g:'Nature & animals',t:[
-   "fish, shark, whale, dolphin, crab, octopus, jellyfish, starfish",
-   "seal, lobster, squid, seahorse, turtle, eel, prawn, shrimp, clam, oyster, mussel, stingray, sea lion, walrus",
-   "manta ray, swordfish, narwhal, orca|killer whale, barracuda, anemone|sea anemone, cuttlefish, sea urchin, coral, plankton, krill, hammerhead, porpoise, cod, tuna, salmon, manatee",
-   "nudibranch, sea cucumber, angler fish|anglerfish, pufferfish|puffer fish, wrasse, goby, limpet, barnacle, sea slug, hagfish, lamprey, lionfish, moray eel, dugong, remora, isopod, portuguese man o war|man o war"]},
-  {n:'Wild animals of the UK',g:'Nature & animals',t:[
-   "fox, badger, squirrel, rabbit, deer, hedgehog, mouse, rat",
-   "hare, otter, stoat, weasel, mole, bat, vole, shrew, red squirrel, grey squirrel, seal, pine marten, polecat",
-   "dormouse, water vole, wildcat, red deer, roe deer, fallow deer, muntjac, harvest mouse, pygmy shrew, grass snake, adder, slow worm, natterjack toad, newt, common lizard",
-   "pipistrelle, noctule, bechstein's bat, mink, beaver, wild boar, sika deer, chinese water deer, edible dormouse, grey seal, common seal, bottlenose dolphin, sand lizard, smooth snake, great crested newt"]},
-  {n:'Flowers',g:'Nature & animals',t:[
-   "rose, daisy, tulip, daffodil, sunflower, lily, poppy, bluebell",
-   "lavender, orchid, carnation, buttercup, dandelion, snowdrop, primrose, pansy, violet, marigold, geranium, hyacinth, crocus, lilac, foxglove, iris",
-   "peony, chrysanthemum, hydrangea, jasmine, camellia, magnolia, fuchsia, clematis, honeysuckle, lupin, sweet pea, delphinium, begonia, petunia, cowslip, forget me not|forget-me-not, gerbera, freesia, wisteria, lotus",
-   "aconite, anemone, aster, astilbe, columbine|aquilegia, cosmos, dahlia, gladiolus, hellebore, hollyhock, larkspur, nasturtium, phlox, snapdragon, stock, verbena, zinnia, amaryllis, oleander, protea"]},
-  {n:'Trees',g:'Nature & animals',t:[
-   "oak, pine, birch, willow, apple, maple, palm, ash",
-   "beech, elm, cherry, christmas tree|fir, spruce, sycamore, chestnut, lime, holly, yew, poplar, cedar, eucalyptus, olive, rowan, hawthorn",
-   "hazel, alder, hornbeam, larch, juniper, redwood, sequoia, baobab, mahogany, ebony, teak, plane, walnut, magnolia, elder, blackthorn, monkey puzzle, silver birch",
-   "whitebeam, aspen, field maple, wych elm, crab apple, sweet chestnut, horse chestnut, cypress, banyan, mangrove, jacaranda, ginkgo, tulip tree, tamarind, dawn redwood, bristlecone pine, sessile oak"]},
-  {n:'Farm animals and their young',g:'Nature & animals',t:[
-   "cow, pig, sheep, horse, chicken, goat, duck, donkey",
-   "turkey, goose, llama, alpaca, bull, rooster|cockerel, lamb, calf, piglet, foal, hen, ox, mule, pony",
-   "ram, ewe, sow, boar, heifer, bullock, steer, gander, gosling, kid, highland cow, shire horse, bantam, guinea fowl",
-   "wether, hogget, tup, gelding, stallion, mare, yearling, cob, drake, capon, jersey cow, gloucester old spot, herdwick, soay"]},
-  
-  /* Places & travel */
-  {n:'Cities and towns in the UK',g:'Places & travel',t:[
-   "london, manchester, birmingham, liverpool, leeds, glasgow, edinburgh, cardiff",
-   "bristol, newcastle, sheffield, nottingham, belfast, brighton, oxford, cambridge, york, bath, southampton, leicester, norwich, aberdeen, plymouth",
-   "coventry, derby, hull, stoke, wolverhampton, sunderland, portsmouth, exeter, canterbury, chester, durham, lincoln, inverness, swansea, dundee, carlisle, reading, swindon, bournemouth",
-   "lichfield, ely, wells, truro, salisbury, ripon, st davids, armagh, bangor, stirling, perth, newport, preston, bradford, gloucester, worcester, hereford, winchester, wakefield, peterborough"]},
-  {n:'US states',g:'Places & travel',t:[
-   "california, texas, florida, new york, alaska, hawaii, nevada, arizona",
-   "ohio, georgia, washington, oregon, colorado, utah, illinois, michigan, virginia, montana, alabama, louisiana, massachusetts, pennsylvania, tennessee",
-   "kentucky, indiana, iowa, kansas, missouri, wisconsin, minnesota, maine, vermont, idaho, wyoming, oklahoma, arkansas, mississippi, maryland, nebraska, new mexico, new jersey, connecticut, delaware",
-   "rhode island, new hampshire, north dakota, south dakota, west virginia, north carolina, south carolina"]},
-  {n:'Rivers of the world',g:'Places & travel',t:[
-   "thames, nile, amazon, mississippi, severn, yangtze, danube, ganges",
-   "rhine, seine, tyne, mersey, trent, clyde, congo, volga, tiber, jordan, euphrates, tigris, hudson, colorado, mekong",
-   "avon, tay, tweed, wye, dee, ouse, humber, zambezi, niger, indus, loire, rhone, elbe, oder, po, ebro, tagus, shannon, murray, orinoco, rio grande, yukon, missouri",
-   "dnieper, don, ural, ob, lena, irrawaddy, brahmaputra, limpopo, orange, vistula, douro, guadalquivir, mackenzie, st lawrence, magdalena, paraná|parana"]},
-  {n:'Famous landmarks',g:'Places & travel',t:[
-   "eiffel tower, big ben, statue of liberty, colosseum, taj mahal, great wall of china, pyramids, buckingham palace",
-   "tower bridge, stonehenge, sydney opera house, leaning tower of pisa, golden gate bridge, mount rushmore, london eye, tower of london, empire state building, brandenburg gate, acropolis, christ the redeemer, machu picchu, petra, niagara falls, grand canyon",
-   "sagrada familia, burj khalifa, angkor wat, forbidden city, blue mosque|hagia sophia, notre dame, arc de triomphe, trevi fountain, atomium, kremlin, red square, alhambra, versailles, neuschwanstein, hoover dam, space needle, cn tower, uluru|ayers rock, table mountain, giant's causeway, edinburgh castle",
-   "mont saint michel, meteora, chichen itza, moai, terracotta army, borobudur, bagan, sigiriya, stari most, cliffs of moher, white cliffs of dover, hadrian's wall, skara brae, fingal's cave, ha long bay, victoria falls, ponte vecchio, bridge of sighs"]},
-  {n:'Currencies of the world',g:'Places & travel',t:[
-   "pound, dollar, euro, yen, rupee, peso, franc, rouble|ruble",
-   "yuan|renminbi, krona, krone, dirham, rand, lira, won, baht, shekel, real, zloty, forint, dinar, rial",
-   "ringgit, rupiah, dong, taka, kyat, riyal, leu, lev, kuna, hryvnia, lari, tenge, som, shilling, kwacha, naira, cedi, birr, kina",
-   "ngultrum, loti, lilangeni, pula, ariary, dalasi, leone, quetzal, lempira, colón|colon, balboa, gourde, guarani, boliviano, bitcoin, tugrik|togrog, manat, afghani, kip, pataca"]},
-  {n:'Languages',g:'Places & travel',t:[
-   "english, french, spanish, german, italian, chinese|mandarin, japanese, arabic",
-   "russian, portuguese, hindi, urdu, welsh, latin, greek, dutch, polish, turkish, korean, swedish, norwegian, danish, irish, scottish gaelic|gaelic",
-   "bengali, punjabi, cantonese, swahili, hebrew, thai, vietnamese, hungarian, czech, finnish, ukrainian, romanian, persian|farsi, tamil, tagalog, indonesian, afrikaans",
-   "basque, catalan, cornish, manx, breton, esperanto, yiddish, maori, hawaiian, sanskrit, zulu, xhosa, amharic, pashto, kurdish, mongolian, icelandic, maltese, latvian, estonian, lithuanian"]},
-  {n:'Seas and oceans',g:'Places & travel',t:[
-   "atlantic, pacific, indian, arctic, mediterranean, north sea, red sea, caribbean",
-   "southern ocean|antarctic, baltic, black sea, dead sea, irish sea, english channel, adriatic, aegean, caspian, tasman, bering, coral sea, sargasso",
-   "celtic sea, barents, labrador, weddell, ross sea, ionian, tyrrhenian, ligurian, arabian sea, south china sea, yellow sea, sea of japan, bay of biscay, gulf of mexico, hudson bay, white sea, kara sea, laptev, bay of bengal",
-   "sea of azov, sea of marmara, sea of okhotsk, beaufort sea, chukchi, solomon sea, java sea, banda sea, timor sea, arafura, philippine sea, andaman sea, sulu, celebes, sea of galilee, aral sea, wadden sea"]},
-  
-  /* Fun & culture */
-  {n:'Board games',g:'Fun & culture',t:[
-   "monopoly, cluedo, scrabble, chess, draughts|checkers, snakes and ladders, ludo, risk",
-   "trivial pursuit, connect 4|connect four, jenga, battleships|battleship, operation, guess who, pictionary, uno, mousetrap|mouse trap, twister, backgammon, dominoes, buckaroo, hungry hippos",
-   "catan|settlers of catan, ticket to ride, carcassonne, pandemic, dobble, articulate, taboo, kerplunk, boggle, othello, go, mastermind, stratego, game of life|the game of life, frustration, downfall",
-   "mahjong, shogi, mancala, nine men's morris, fox and geese, hnefatafl, azul, wingspan, terraforming mars, gloomhaven, dixit, codenames, splendor, 7 wonders, agricola, scotland yard, diplomacy, cranium, kingdomino"]},
-  {n:'Card games',g:'Fun & culture',t:[
-   "poker, snap, solitaire, bridge, rummy, blackjack, go fish, old maid",
-   "patience, whist, cheat, hearts, crazy eights, gin rummy, canasta, cribbage, happy families, beggar my neighbour, pontoon, spit, president, texas hold'em",
-   "baccarat, euchre, spades, pinochle, skat, piquet, newmarket, brag, speed, sevens, golf, nap, napoleon, oh hell",
-   "bezique, ecarte, faro, loo, quadrille, ombre, tarot, tarock, jass, durak, belote, sheepshead, klondike, freecell, spider, canfield, klaverjas"]},
-  {n:'Olympic sports',g:'Fun & culture',t:[
-   "swimming, athletics, gymnastics, cycling, rowing, boxing, tennis, football",
-   "diving, judo, archery, fencing, sailing, weightlifting, hockey, basketball, volleyball, golf, rugby sevens|rugby, table tennis, badminton, equestrian, triathlon, wrestling",
-   "shooting, canoeing|kayaking, taekwondo, handball, modern pentathlon|pentathlon, skateboarding, surfing, climbing|sport climbing, karate, trampolining, synchronised swimming|artistic swimming, water polo, beach volleyball, bmx, marathon, decathlon",
-   "skeleton, curling, luge, bobsleigh|bobsled, biathlon, nordic combined, ski jumping, ice dance, short track, snowboard cross|snowboarding, slalom, breaking, rhythmic gymnastics, race walking, steeplechase, tug of war, polo, croquet"]},
-  {n:'Types of dance',g:'Fun & culture',t:[
-   "ballet, salsa, tango, waltz, disco, hip hop, jive, breakdance",
-   "tap, line dancing, ballroom, foxtrot, cha cha, rumba, samba, flamenco, morris dancing|morris, polka, jitterbug, charleston, macarena, conga, twist, irish dancing",
-   "quickstep, paso doble, lindy hop, can can, bhangra, belly dancing, ceilidh, maypole, square dance, swing, mambo, bachata, merengue, lambada, jig, hornpipe",
-   "tarantella, mazurka, gavotte, minuet, fandango, bolero, kathak, bharatanatyam, haka, hula, pavane, sword dance, strathspey, reel, gangnam style, floss"]},
-  {n:'Famous pairs',g:'Fun & culture',t:[
-   "salt and pepper, fish and chips, bread and butter, tom and jerry, batman and robin, bonnie and clyde, romeo and juliet, ant and dec",
-   "laurel and hardy, simon and garfunkel, cheese and onion, strawberries and cream, bubble and squeak, rock and roll, gin and tonic, jack and jill, hansel and gretel, adam and eve, cain and abel, morecambe and wise, torvill and dean, starsky and hutch",
-   "sonny and cher, hall and oates, ben and jerry, marks and spencer, procter and gamble, rolls and royce, fortnum and mason, gilbert and sullivan, flanders and swann, hale and pace, french and saunders, fry and laurie, mulder and scully, thelma and louise, holmes and watson, wallace and gromit, abbott and costello",
-   "castor and pollux, romulus and remus, bill and ben, flotsam and jetsam, kith and kin, hammer and tongs, sturm und drang, tweedledum and tweedledee, rosencrantz and guildenstern, jekyll and hyde, lock and key, cagney and lacey"]},
-  
-  /* Colours & traits */
-  {n:'Things that are green',g:'Colours & traits',t:[
-   "grass, frog, leaf, tree, peas|pea, lime, cucumber, broccoli",
-   "emerald, kiwi, mint, cabbage, lettuce, crocodile, apple, pickle, avocado, shamrock|clover, parrot, lizard, snake, grapes|grape, spinach",
-   "jade, olive, moss, pistachio, ivy, fern, basil, kale, courgette, asparagus, turtle, praying mantis, chameleon, traffic light",
-   "verdigris, malachite, celadon, chartreuse, absinthe, viridian, sage, seaweed, lichen, pea soup, snooker table|billiard table, bottle glass"]},
-  {n:'Things that are blue',g:'Colours & traits',t:[
-   "sky, sea, ocean, blueberry, jeans, whale, bluebell, water",
-   "sapphire, bluebird, blue tit, cornflower, ice, swimming pool, denim, blue cheese, peacock, kingfisher, blue jay, hydrangea, tanzanite",
-   "lapis lazuli, turquoise, navy, indigo, cobalt, azure, cyan, ultramarine, delft, teal, blue lagoon, blue moon, blue morpho|morpho butterfly, cerulean",
-   "prussian blue, egyptian blue, klein blue, woad, bluebottle, blue poppy, royal blue, periwinkle, electric blue, powder blue"]},
-  {n:'Things that are white',g:'Colours & traits',t:[
-   "snow, milk, clouds|cloud, paper, swan, polar bear, salt, sugar",
-   "ghost, egg, teeth|tooth, rice, wedding dress, flour, snowman, daisy, cotton wool|cotton, sheep, chalk, bone, lily",
-   "ivory, pearl, marshmallow, cream, vanilla, porcelain, lace, coconut, cauliflower, white chocolate, tofu, yoghurt, dove, arctic fox",
-   "alabaster, ermine, meringue, lard, cumulus, bleach, whitewash, snowdrop, barn owl"]},
-  {n:'Things that are black',g:'Colours & traits',t:[
-   "night, coal, cat, tyre|tire, crow, raven, tar, liquorice",
-   "ink, panther, bat, spider, burnt toast, pen, blackboard|chalkboard, bin bag, bin liner, piano keys, black olives, suit, tuxedo, sunglasses, black hole, hearse",
-   "ebony, jet, onyx, obsidian, soot, charcoal, treacle|molasses, caviar, black pudding, squid ink, blackberry, black pepper",
-   "tourmaline, shungite, vantablack, lampblack, pitch, midnight, ink cap, grand piano"]},
-  {n:'Things that are hot',g:'Colours & traits',t:[
-   "sun, fire, oven, soup, tea, coffee, lava, volcano",
-   "iron, hob|cooker, kettle, chilli, curry, radiator, sauna, desert, toaster, summer, hot water, hairdryer|hair dryer, barbecue",
-   "furnace, magma, lightbulb, grill, candle flame, boiling water, steam, jalapeño, wasabi, scotch bonnet, matches, exhaust pipe, campfire, hot tub, heater",
-   "blast furnace, smelter, branding iron, forge, solar flare, geyser, plasma, welding torch, thermal spring, carolina reaper, ghost pepper, nuclear reactor"]},
-  {n:'Things that are sharp',g:'Colours & traits',t:[
-   "knife, needle, scissors, pin, razor, thorn, saw, axe",
-   "sword, tooth|teeth, claw, glass, nail, fork, cactus, pencil, blade, dagger, arrow, broken glass, shark tooth, spike",
-   "scalpel, hypodermic, barbed wire, rose thorn, chisel, spear, tack, drawing pin|thumbtack, shard, stiletto, cheese grater|grater, bayonet, holly leaf|holly, porcupine quill|quill, sea urchin",
-   "katana, razor wire, obsidian blade, stingray barb, rapier, scythe, awl, harpoon, sabre, cleaver, lancet, crampon, talon"]},
-  {n:'Things that are soft',g:'Colours & traits',t:[
-   "pillow, cushion, teddy bear, blanket, cotton wool, feather, fur, sponge",
-   "marshmallow, duvet, cat, kitten, bunny|rabbit, slippers, cloud, velvet, towel, jumper, scarf, cotton, sheepskin, butter",
-   "cashmere, silk, chinchilla, angora, fleece, moleskin, down, mousse, candyfloss, dough, whipped cream, ice cream, memory foam, bean bag, kapok",
-   "eiderdown, mohair, alpaca, vicuña, plush, chenille, flannelette, microfibre, chamois, lambswool, swansdown, marabou"]},
-  {n:'Things that are loud',g:'Colours & traits',t:[
-   "thunder, siren, alarm, drum, explosion, fireworks, trumpet, jet",
-   "rock concert|concert, lion, shouting, horn, car horn, bell, crowd, helicopter, lawnmower, vacuum cleaner|hoover, drill, chainsaw, motorbike, football match, baby crying",
-   "foghorn, megaphone, jackhammer, air horn, volcano eruption|volcano, avalanche, sonic boom, cannon, bagpipes, fire alarm, tannoy, thunderclap, speaker, subwoofer, construction site",
-   "howler monkey, blue whale, krakatoa, pistol shrimp, rocket launch, gunshot, cicada, oilbird, kookaburra, concorde, banshee"]},
-  {n:'Things that are sticky',g:'Colours & traits',t:[
-   "glue, honey, tape, jam, sellotape, toffee, syrup, chewing gum",
-   "sticker, treacle, plasters|plaster, post it, velcro, spider web|cobweb, tar, gum, candyfloss, mud, sugar, caramel, blu tack, jelly, marshmallow, sap",
-   "super glue, duct tape, resin, flypaper, masking tape, double sided tape, pritt stick, rubber cement, gaffer tape, glue gun, putty, toffee apple, gloop, molasses",
-   "pine tar, bird lime, epoxy, araldite, contact adhesive, paste, mucilage, glue trap, pitch, bitumen"]},
-  {n:'Things that are small',g:'Colours & traits',t:[
-   "ant, pea, button, coin, pin, grain of sand, seed, mouse",
-   "ladybird, bead, thimble, stamp, key, crumb, raisin, marble, dice, flea, paperclip, needle, pebble, acorn, peanut",
-   "atom, speck, dust mite, molecule, grain of rice, sesame seed, poppy seed, microchip, pixel, bacteria|bacterium, virus, hummingbird, pygmy shrew, bee hummingbird, pinhead",
-   "quark, electron, nanoparticle, plankton, neutrino, amoeba, tardigrade, dust, photon, proton, dwarf gecko"]},
-  {n:'Things that are heavy',g:'Colours & traits',t:[
-   "elephant, anvil, car, piano, rock, whale, truck, boulder",
-   "bricks|brick, safe, iron, lead, concrete, dumbbell, bus, sofa, fridge, weights, cannon, bowling ball, tank, ship, train",
-   "steel, anchor, bulldozer, crane, lorry, aircraft carrier, tombstone, manhole cover, gold bar, mercury, tungsten, granite, cast iron, shot put, kettlebell",
-   "neutron star, osmium, iridium, uranium, megalith, hippo, mountain, black hole, planet, sumo wrestler, locomotive"]},
-  {n:'Things that are tall',g:'Colours & traits',t:[
-   "giraffe, tree, skyscraper, tower, mountain, ladder, building, lamppost",
-   "eiffel tower, big ben, lighthouse, crane, giant, basketball player, flagpole, windmill, pylon, redwood, church spire|spire, chimney, cliff, waterfall, stilts",
-   "burj khalifa, the shard|shard, space needle, cn tower, mast, wind turbine, minaret, obelisk, totem pole, telegraph pole, ostrich, sequoia, bamboo, sunflower, silo",
-   "everest, k2, olympus mons, tokyo skytree, empire state, willis tower, petronas towers, shanghai tower, taipei 101, sears tower, hyperion"]}
-  );
-  
-  /* Bigger answer lists for the original categories (appended tier by tier) */
-  var MORE={
-  'Things you find in a home':[
-   "door, window, stairs, shelf, washing machine, light, bin",
-   "dishwasher, tumble dryer, vacuum cleaner|hoover, iron, fireplace, sideboard, coffee table, doorbell, letterbox, houseplant|plant",
-   "thermostat, skirting board, banister, door handle, dining table, step ladder, clothes airer, router|wifi router, carbon monoxide detector",
-   "gas meter, electricity meter, ceiling rose, picture rail, door knocker, cornice, boiler flue, fanlight, lintel, newel post"],
-  'Things in a kitchen':[
-   "cupboard, worktop, drawer, dishcloth",
-   "grill, kitchen scales, jug, baking tray, wooden spoon, mixing bowl, tupperware, lid",
-   "blender, food processor, slow cooker, air fryer, rice cooker, bread maker, juicer, pressure cooker",
-   "pastry brush, skewer, meat tenderiser, bain marie, mezzaluna, madeleine tin, cake tin, salad spinner, cheese knife"],
-  'Things in a bathroom':[
-   "",
-   "toilet seat, shower gel, hand wash, hairbrush, comb, nail clippers, bath towel, hand towel, cabinet",
-   "bath toys, rubber duck, cotton pads, tweezers, hair dryer, electric toothbrush, shower head, soap dish, toothbrush holder",
-   "u bend, grout, shower tray, shaving foam, overflow, bath panel, shower mixer, tooth mug, nail brush, bath tray"],
-  'Things in a garage or shed':[
-   "bucket, broom, torch, gloves",
-   "tyre, jack, oil, bike pump, garden fork, shears, watering can, bin bags",
-   "lawn edger, hedge trimmer, leaf blower, pressure washer, vice grips, work light, fuel can, sack truck, tool chest",
-   "tenon saw, router, belt sander, bench grinder, lathe, mitre block, plumb bob, feeler gauge, torque wrench, pneumatic drill"],
-  'Fruits':[
-   "clementine",
-   "tangerine, satsuma, blackcurrant, date",
-   "mandarin, cantaloupe, honeydew melon|honeydew, bilberry, mulberry, elderberry, loganberry, jackfruit, plantain, star fruit|starfruit, prickly pear",
-   "ugli fruit, physalis|cape gooseberry, longan, mangosteen, pomelo, soursop, custard apple, cherimoya, jujube, salak, durian, feijoa, tayberry, boysenberry, sloe"],
-  'Animals at the zoo':[
-   "polar bear",
-   "ostrich, buffalo, lynx, jaguar, puma, koala, emu",
-   "warthog, wildebeest, antelope, gazelle, bison, llama, alpaca, yak, ibex, mongoose, hyena",
-   "aye aye, fossa, kinkajou, coati, dik dik, kudu, oryx, bongo, takin, babirusa, numbat, quoll, echidna, platypus, bilby"],
-  'Things that are red':[
-   "santa",
-   "heart, fire, wine, lava, flame, sunset, blush, rash",
-   "cardinal, cockscomb, red panda, rhubarb, red cabbage, red onion, kidney bean",
-   "carnelian, cinnabar, rust, rosewood, burgundy, claret, cerise, maroon, magenta, oxblood"],
-  'Things that are round':[
-   "earth, football, bowl, saucer",
-   "plant pot, pancake, cookie, record, tin lid, roulette wheel",
-   "snowball, cannonball, pearl, eyeball, planet, pumpkin",
-   "armillary sphere, orrery, gobstopper, ouroboros, astrolabe"],
-  'Things that fly':[
-   "crow, swan",
-   "goose, stork, bumblebee, ladybird, duck, sparrow, robin",
-   "biplane, seaplane, spaceship, concorde, falcon, swift",
-   "condor, albatross, harrier, osprey, swallow, red kite, sailplane"],
-  'Pizza toppings':[
-   "",
-   "ham and pineapple, margherita, red onion, extra cheese, red pepper, green pepper",
-   "black olives, green olives, sundried tomatoes, roast chicken, meatballs, shredded beef, courgette, asparagus",
-   "gorgonzola, smoked cheese, mortadella, pancetta, caramelised onions, truffle oil, pistachio, ricotta"],
-  'Types of pasta':[
-   "",
-   "tagliolini, fideo, gemelli, elbow macaroni, mafalde, rotelle",
-   "lasagnette, scialatielli, busiate, calamarata, malloreddus, maltagliati, mezzelune, fusilli lunghi",
-   "capunti, corzetti, culurgiones, fileja, ricciolini, sagnarelli, testaroli, tortiglioni, trenette, chitarra"]
-  };
-  /* Groups for the original categories; new ones carry their own g */
-  var OLDG={
-   'Things you find in a home':'Home & life','Things in a kitchen':'Home & life','Things in a bathroom':'Home & life','Things in a garage or shed':'Home & life',
-   'Things in a classroom or school bag':'Home & life','Things in a handbag or pockets':'Home & life','Things in a toolbox':'Home & life','Things you do in the morning':'Home & life',
-   'Things you pack for a holiday':'Places & travel','Countries in Europe':'Places & travel','Capital cities':'Places & travel','Things at the seaside':'Places & travel','Things in a park':'Places & travel','Things with wheels':'Places & travel',
-   'Fruits':'Food & drink','Pizza toppings':'Food & drink','Types of pasta':'Food & drink','Ice cream flavours':'Food & drink','Breakfast foods':'Food & drink',
-   'Animals at the zoo':'Nature & animals','Things that fly':'Nature & animals','Dog breeds':'Nature & animals',
-   'Sports played with a ball':'Fun & culture','Musical instruments':'Fun & culture','Things at a wedding':'Fun & culture',
-   'Things that are red':'Colours & traits','Things that are round':'Colours & traits','Things that are cold':'Colours & traits','Things that are yellow':'Colours & traits'
-  };
-
-  /* ---------- Data wiring ---------- */
-
-  BANK.forEach(function (c) {
-    var m = MORE[c.n];
-    if (!m) return;
-    c.t = c.t.map(function (s, i) { return m[i] && m[i].trim() ? s + ', ' + m[i] : s; });
-  });
-  BANK.forEach(function (c) {
-    if (c.g) return;
-    if (c.pre) c.g = 'Starts with';
-    else if (/^Words that rhyme/.test(c.n)) c.g = 'Rhymes';
-    else c.g = OLDG[c.n] || 'Home & life';
-  });
 
   var ROUND_OPTIONS = [3, 5, 8, 10];
   var SECS_OPTIONS = [30, 45, 60, 90];
@@ -998,13 +512,15 @@
   /* ---------- State and persistence ---------- */
 
   var STORE_KEY = 'rarefight:game';
+  /* Bump when BANK is reordered or categories are removed: a saved game refers to categories by index. */
+  var DATA_VERSION = 2;
   var PHASES = ['setup', 'ready', 'turn', 'pass', 'reveal', 'final'];
 
   function defaultCfg() {
     return { names: ['', ''], rounds: 5, secs: 45, clash: true, sound: true, packs: GROUPS.slice() };
   }
   function freshState() {
-    return { phase: 'setup', cfg: defaultCfg(), coins: [STARTING_COINS, STARTING_COINS],
+    return { v: DATA_VERSION, phase: 'setup', cfg: defaultCfg(), coins: [STARTING_COINS, STARTING_COINS],
              round: 0, pool: [], cur: null, pass: null, totals: [0, 0], history: [] };
   }
 
@@ -1051,7 +567,8 @@
     }
     if (isPair(s.coins)) d.coins = [Math.max(0, +s.coins[0] || 0), Math.max(0, +s.coins[1] || 0)];
 
-    if (PHASES.indexOf(s.phase) > 0 && validGame(s)) {
+    /* A game saved against a different category list is abandoned; settings and coins carry over. */
+    if (s.v === DATA_VERSION && PHASES.indexOf(s.phase) > 0 && validGame(s)) {
       d.phase = s.phase;
       d.round = s.round;
       d.pool = s.pool;
