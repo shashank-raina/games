@@ -82,7 +82,17 @@ There's no test suite. Before committing:
 
 ## Deployment
 
-GitHub Pages serves the repo root from `main`. Pushing to `main` publishes. Filenames are public URLs, so renaming a file breaks anyone's home-screen shortcut — avoid it.
+Cloudflare Workers Builds deploys the repo on every push. The Worker is called `games` and serves the repo root as static assets: `wrangler.jsonc` points it at `./`, and `.assetsignore` keeps the docs, config and `.git` out of the upload. Pushes to `main` go to production; other branches upload a preview version. There is no Worker script and no build step — Cloudflare runs `npx wrangler versions upload` itself, so the repo still needs no `package.json`. GitHub Pages also serves the repo root from `main`.
+
+Filenames are public URLs, so renaming a file breaks anyone's home-screen shortcut — avoid it.
+
+To check the upload locally without deploying:
+
+```
+npx wrangler deploy --dry-run
+```
+
+Adding a new game needs no deployment change: any new file in the root is served.
 
 ## Writing
 
