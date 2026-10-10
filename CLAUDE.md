@@ -4,7 +4,7 @@ Guidance for Claude Code working in this repository.
 
 ## What this repo is
 
-A collection of small browser games and game tools, served as static files from GitHub Pages. Currently one game: `tilescore.html`, a word-game scorekeeper.
+A collection of small browser games and game tools, served as static files from GitHub Pages. Currently two games: `tilescore.html`, a word-game scorekeeper, and `rarefight.html`, a two-player category word duel.
 
 ## Hard constraints
 
